@@ -6,7 +6,8 @@ import { CapabilityMarketplace } from './components/CapabilityMarketplace'
 import { SecretsVault } from './components/SecretsVault'
 import { BillingDashboard } from './components/BillingDashboard'
 import { CreateSandboxModal } from './components/CreateSandboxModal'
-import { Shield, Zap, Box, Server, Clock, CheckCircle2, Globe } from 'lucide-react'
+import { BoxWorkspace } from './components/BoxWorkspace'
+import { Shield, Zap, Box, Server, Clock, CheckCircle2, Globe, Play } from 'lucide-react'
 import { mockSandboxes } from './data/sandboxes'
 import type { Sandbox } from './data/sandboxes'
 import { cn } from './lib/utils'
@@ -19,6 +20,7 @@ function App() {
   const [isKilled, setIsKilled] = useState(false)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [activeSandbox, setActiveSandbox] = useState<Sandbox>(mockSandboxes[0])
+  const [isWorkspaceOpen, setIsWorkspaceOpen] = useState(false)
 
   const handleAccept = () => {
     setIsUnlocked(true)
@@ -32,7 +34,23 @@ function App() {
   const handleCreateSandbox = (name: string, region: string) => {
     console.log("Creating sandbox:", name, region)
     setIsCreateModalOpen(false)
-    // In a real app we'd add it to the list and select it
+  }
+
+  const handleOpenBox = (sandbox?: Sandbox) => {
+    if (sandbox) {
+      setActiveSandbox(sandbox)
+    }
+    setIsWorkspaceOpen(true)
+  }
+
+  // If workspace is open, render that instead
+  if (isWorkspaceOpen) {
+    return (
+      <BoxWorkspace 
+        sandbox={activeSandbox} 
+        onClose={() => setIsWorkspaceOpen(false)} 
+      />
+    )
   }
 
   return (
@@ -51,14 +69,20 @@ function App() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="p-8 rounded-3xl border border-white/5 bg-white/5 backdrop-blur-xl col-span-2 relative overflow-hidden">
                 <div className="relative z-10">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h1 className="text-4xl font-black tracking-tighter uppercase">{activeSandbox.name}</h1>
-                    <div className={cn(
-                      "px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border",
-                      activeSandbox.status === 'online' ? "bg-green-500/10 border-green-500/20 text-green-500" : "bg-white/5 border-white/10 text-muted-foreground"
-                    )}>
-                      {activeSandbox.status}
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <h1 className="text-4xl font-black tracking-tighter uppercase">{activeSandbox.name}</h1>
+                      <div className={cn(
+                        "px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border",
+                        activeSandbox.status === 'online' ? "bg-green-500/10 border-green-500/20 text-green-500" : "bg-white/5 border-white/10 text-muted-foreground"
+                      )}>
+                        {activeSandbox.status}
+                      </div>
                     </div>
+                    <Button onClick={() => handleOpenBox()} className="gap-2">
+                      <Play className="w-4 h-4" />
+                      Open Box
+                    </Button>
                   </div>
                   <p className="text-muted-foreground">Running in {activeSandbox.region}. Active for {activeSandbox.uptime || '0m'}.</p>
                   
@@ -189,12 +213,24 @@ function App() {
                       <div className="text-sm font-bold text-primary">£2.10 this month</div>
                     </div>
                     {activeSandbox.id === sb.id ? (
-                      <div className="px-4 py-2 rounded-xl bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                        <CheckCircle2 className="w-3 h-3" />
-                        Active
+                      <div className="flex items-center gap-2">
+                        <div className="px-4 py-2 rounded-xl bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                          <CheckCircle2 className="w-3 h-3" />
+                          Active
+                        </div>
+                        <Button onClick={() => handleOpenBox(sb)} size="sm" className="gap-2">
+                          <Play className="w-3 h-3" />
+                          Open
+                        </Button>
                       </div>
                     ) : (
-                      <Button variant="secondary" size="sm" onClick={() => setActiveSandbox(sb)}>Select</Button>
+                      <div className="flex items-center gap-2">
+                        <Button variant="secondary" size="sm" onClick={() => setActiveSandbox(sb)}>Select</Button>
+                        <Button onClick={() => handleOpenBox(sb)} size="sm" className="gap-2">
+                          <Play className="w-3 h-3" />
+                          Open
+                        </Button>
+                      </div>
                     )}
                   </div>
                 </div>
