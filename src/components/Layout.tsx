@@ -3,6 +3,7 @@ import { Sidebar } from "./Sidebar"
 import { AuditBadge } from "./AuditBadge"
 import { Power } from "lucide-react"
 import { Button } from "./ui/Button"
+import { cn } from "../lib/utils"
 
 interface LayoutProps {
   children: React.ReactNode
