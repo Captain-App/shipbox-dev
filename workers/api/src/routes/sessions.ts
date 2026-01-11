@@ -1,7 +1,8 @@
 import { Hono } from "hono";
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 import { SessionService, makeSessionServiceLayer } from "../services/session";
 import { CreateSessionInput } from "../models/session";
+import { QuotaService, makeQuotaServiceLayer } from "../services/quota";
 
 type Bindings = {
   DB: D1Database;
@@ -41,6 +42,26 @@ export const sessionsRoutes = new Hono<{ Bindings: Bindings; Variables: Variable
   .post("/", async (c) => {
     const user = c.get("user");
     const body = await c.req.json();
+    
+    // Validate input
+    const decodeResult = Effect.runSyncExit(Schema.decodeUnknown(CreateSessionInput)(body));
+    if (Effect.Exit.isFailure(decodeResult)) {
+      return c.json({ error: "Invalid input" }, 400);
+    }
+    const input = decodeResult.value;
+
+    const quotaService = Effect.runSync(
+      Effect.map(QuotaService, (s) => s).pipe(
+        Effect.provide(makeQuotaServiceLayer(c.env.DB))
+      )
+    );
+
+    // Check quota first
+    const quotaResult = await Effect.runPromiseExit(quotaService.checkSandboxQuota(user.id));
+    if (Effect.Exit.isFailure(quotaResult)) {
+      return c.json({ error: (quotaResult.cause as any).defect?.message || "Quota exceeded" }, 403);
+    }
+
     const service = Effect.runSync(
       Effect.map(SessionService, (s) => s).pipe(
         Effect.provide(makeSessionServiceLayer(c.env.DB))
@@ -50,7 +71,7 @@ export const sessionsRoutes = new Hono<{ Bindings: Bindings; Variables: Variable
     // 1. Create session in sandbox-mcp
     const res = await c.env.SANDBOX_MCP.fetch("http://sandbox/internal/sessions", {
       method: "POST",
-      body: JSON.stringify(body),
+      body: JSON.stringify({ ...input, userId: user.id }),
       headers: { "Content-Type": "application/json" }
     });
 

@@ -1,8 +1,22 @@
-import { CreditCard, ArrowUpRight, Zap, TrendingUp, AlertCircle } from "lucide-react"
+import { CreditCard, ArrowUpRight, Zap, TrendingUp, AlertCircle, Loader2 } from "lucide-react"
+import { useState, useEffect } from "react"
 import { Button } from "./ui/Button"
 import { cn } from "../lib/utils"
+import { api } from "../lib/api"
 
 export function BillingDashboard() {
+  const [balance, setBalance] = useState<{ balanceCredits: number } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.getBalance()
+      .then(data => setBalance(data))
+      .catch(err => console.error("Failed to fetch balance:", err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const balanceAmount = balance ? (balance.balanceCredits / 100).toFixed(2) : "0.00";
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -22,8 +36,12 @@ export function BillingDashboard() {
             <CreditCard className="w-4 h-4" />
             <span className="text-[10px] font-black uppercase tracking-widest">Balance</span>
           </div>
-          <div className="text-4xl font-black tracking-tighter">£24.50</div>
-          <p className="text-xs text-muted-foreground">Approx. 42 hours of compute remaining at current rate.</p>
+          {loading ? (
+            <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          ) : (
+            <div className="text-4xl font-black tracking-tighter">£{balanceAmount}</div>
+          )}
+          <p className="text-xs text-muted-foreground">Approx. {(balance?.balanceCredits || 0)} minutes of compute remaining.</p>
         </div>
 
         <div className="p-8 rounded-[2rem] border border-white/5 bg-white/5 space-y-4">

@@ -80,5 +80,12 @@ export const api = {
     });
     if (!res.ok) throw new Error('Failed to start session');
     return res.json();
+  },
+
+  async getBalance(): Promise<{ userId: string; balanceCredits: number; updatedAt: number }> {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/billing/balance`, { headers });
+    if (!res.ok) throw new Error('Failed to fetch balance');
+    return res.json();
   }
 };
