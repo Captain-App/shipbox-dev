@@ -1,0 +1,3 @@
+[submodule "sandbox-mcp"]
+	path = sandbox-mcp
+	url = https://github.com/Captain-App/sandbox-mcp.git
