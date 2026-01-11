@@ -5,6 +5,7 @@ import { withSentry } from "@sentry/cloudflare";
 import { sessionsRoutes } from "./routes/sessions";
 import { githubRoutes } from "./routes/github";
 import { settingsRoutes } from "./routes/settings";
+import { billingRoutes } from "./routes/billing";
 import { GitHubService, makeGitHubServiceLayer } from "./services/github";
 import { ApiKeyService, makeApiKeyServiceLayer } from "./services/api-keys";
 import { makeBillingServiceLayer, BillingService } from "./services/billing";
@@ -20,6 +21,10 @@ export type Bindings = {
   GITHUB_APP_ID: string;
   GITHUB_APP_PRIVATE_KEY: string;
   GITHUB_APP_NAME: string;
+  GITHUB_WEBHOOK_SECRET: string;
+  STRIPE_API_KEY: string;
+  STRIPE_WEBHOOK_SECRET: string;
+  APP_URL?: string;
 };
 
 export type Variables = {
@@ -57,6 +62,24 @@ app.post("/internal/report-usage", async (c) => {
 
   if (Exit.isFailure(result)) {
     return c.json({ error: "Failed to report usage" }, 500);
+  }
+
+  return c.json({ success: true });
+});
+
+app.post("/internal/report-token-usage", async (c) => {
+  const body = await c.req.json();
+  const { userId, sessionId, service, inputTokens, outputTokens, model } = body;
+
+  const result = await Effect.runPromiseExit(
+    Effect.gen(function* () {
+      const billing = yield* BillingService;
+      return yield* billing.reportTokenUsage(userId, sessionId, service, inputTokens, outputTokens, model);
+    }).pipe(Effect.provide(makeBillingServiceLayer(c.env.DB)))
+  );
+
+  if (Exit.isFailure(result)) {
+    return c.json({ error: "Failed to report token usage" }, 500);
   }
 
   return c.json({ success: true });
@@ -173,9 +196,31 @@ app.get("/internal/user-config/:userId", async (c) => {
 app.route("/sessions", sessionsRoutes);
 app.route("/github", githubRoutes);
 app.route("/settings", settingsRoutes);
+app.route("/billing", billingRoutes);
 
-// Billing routes
-app.get("/billing/balance", async (c) => {
+// Internal API for engine to check balance
+app.get("/internal/check-balance/:userId", async (c) => {
+  const userId = c.req.param("userId");
+  const quotaLayer = makeQuotaServiceLayer(c.env.DB);
+
+  const result = await Effect.runPromiseExit(
+    Effect.gen(function* () {
+      const quota = yield* QuotaService;
+      return yield* quota.checkBalance(userId);
+    }).pipe(Effect.provide(quotaLayer))
+  );
+
+  if (Exit.isFailure(result)) {
+    const error = Cause.failureOrCause(result.cause);
+    const message = error._tag === "Left" ? error.left.message : "Balance check failed";
+    return c.json({ error: message, ok: false }, 402); // Payment Required
+  }
+
+  return c.json({ ok: true });
+});
+
+// Proxy to sandbox-mcp MCP endpoint
+app.all("/mcp", async (c) => {
   const authHeader = c.req.header("Authorization");
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return c.json({ error: "Unauthorized" }, 401);
@@ -195,18 +240,11 @@ app.get("/billing/balance", async (c) => {
 
   const user = await res.json() as { id: string };
   
-  const result = await Effect.runPromiseExit(
-    Effect.gen(function* () {
-      const service = yield* BillingService;
-      return yield* service.getBalance(user.id);
-    }).pipe(Effect.provide(makeBillingServiceLayer(c.env.DB)))
-  );
-
-  if (Exit.isFailure(result)) {
-    return c.json({ error: "Failed to get balance" }, 500);
-  }
-
-  return c.json(result.value);
+  // Create a new request with the user ID injected in headers
+  const newRequest = new Request(c.req.raw);
+  newRequest.headers.set("X-User-Id", user.id);
+  
+  return c.env.SANDBOX_MCP.fetch(newRequest);
 });
 
 // Proxy to sandbox-mcp web UI

@@ -17,6 +17,15 @@ export function BillingDashboard() {
 
   const balanceAmount = balance ? (balance.balanceCredits / 100).toFixed(2) : "0.00";
 
+  const handleTopUp = async () => {
+    try {
+      const { url } = await api.createCheckoutSession(1000); // Default to £10.00
+      window.location.href = url;
+    } catch (err) {
+      alert("Failed to initiate top-up");
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -24,9 +33,9 @@ export function BillingDashboard() {
           <h2 className="text-3xl font-black uppercase tracking-tighter">Billing</h2>
           <p className="text-muted-foreground">Credits-first metering. No surprises, no runaway costs.</p>
         </div>
-        <Button variant="primary" size="sm" className="gap-2">
+        <Button variant="primary" size="sm" onClick={handleTopUp} className="gap-2">
           <ArrowUpRight className="w-4 h-4" />
-          Top Up Credits
+          Top Up £10.00
         </Button>
       </div>
 

@@ -6,6 +6,9 @@ export function createMockD1() {
   // Store table data as arrays of objects
   const store = new Map<string, any[]>();
   store.set("user_sessions", []);
+  store.set("user_balances", [
+    { user_id: "user-123", balance_credits: 1000, updated_at: Date.now() }
+  ]);
 
   const prepare = (query: string) => {
     return {

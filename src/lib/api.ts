@@ -89,6 +89,17 @@ export const api = {
     return res.json();
   },
 
+  async createCheckoutSession(amountCredits: number): Promise<{ url: string }> {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/billing/checkout`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ amountCredits })
+    });
+    if (!res.ok) throw new Error('Failed to create checkout session');
+    return res.json();
+  },
+
   // GitHub integration
   async getGitHubStatus(): Promise<{ installationId: number; accountLogin: string; accountType: string } | null> {
     const headers = await getAuthHeaders();

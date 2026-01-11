@@ -3,19 +3,55 @@ import { Effect, Exit } from "effect";
 import { GitHubService, makeGitHubServiceLayer } from "../services/github";
 import { Bindings, Variables } from "../index";
 
+async function verifySignature(payload: string, signature: string | null, secret: string): Promise<boolean> {
+  if (!signature) return false;
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["verify"]
+  );
+  
+  const sigHex = signature.replace("sha256=", "");
+  const sigBytes = new Uint8Array(sigHex.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
+  
+  return await crypto.subtle.verify("HMAC", key, sigBytes, encoder.encode(payload));
+}
+
 export const githubRoutes = new Hono<{ Bindings: Bindings; Variables: Variables }>()
   .get("/install", async (c) => {
-    // Redirect to GitHub App installation page
+    const user = c.get("user");
+    // Redirect to GitHub App installation page with user ID in state
     const appName = c.env.GITHUB_APP_NAME || "shipbox-dev";
-    return c.redirect(`https://github.com/apps/${appName}/installations/new`);
+    return c.redirect(`https://github.com/apps/${appName}/installations/new?state=${user.id}`);
   })
   .post("/webhook", async (c) => {
-    // Basic webhook handler - in production we should verify the signature
-    const event = c.req.header("x-github-event");
-    // const payload = await c.req.json() as any;
+    const signature = c.req.header("x-hub-signature-256");
+    const payload = await c.req.text();
+    const secret = c.env.GITHUB_WEBHOOK_SECRET;
 
-    if (event === "installation") {
-      // Handle installation events if needed
+    if (secret && !(await verifySignature(payload, signature || null, secret))) {
+      return c.json({ error: "Invalid signature" }, 401);
+    }
+
+    const data = JSON.parse(payload) as any;
+    const event = c.req.header("x-github-event");
+
+    if (event === "installation" && data.action === "created") {
+      const installationId = data.installation.id;
+      const accountLogin = data.installation.account.login;
+      const accountType = data.installation.account.type;
+      
+      // If we have state (userId), we can link automatically
+      // Note: GitHub passes state back in the setup flow, but for simple install 
+      // we might need the frontend to call /link after redirect.
+      // However, if the user followed the /install link, we have their userId in state.
+      const userId = data.requester?.id || data.sender?.id; // Fallback or use DB lookup
+      
+      // For now, we rely on the frontend calling /link or we look for a pending link.
+      console.log(`GitHub installation created: ${installationId} for ${accountLogin}`);
     }
 
     return c.json({ success: true });

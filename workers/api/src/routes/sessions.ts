@@ -56,11 +56,17 @@ export const sessionsRoutes = new Hono<{ Bindings: Bindings; Variables: Variable
       )
     );
 
-    // Check quota first
-    const quotaResult = await Effect.runPromiseExit(quotaService.checkSandboxQuota(user.id));
+    // Check quota and balance first
+    const quotaResult = await Effect.runPromiseExit(
+      Effect.all([
+        quotaService.checkSandboxQuota(user.id),
+        quotaService.checkBalance(user.id)
+      ])
+    );
+    
     if (Exit.isFailure(quotaResult)) {
       const error = Cause.failureOrCause(quotaResult.cause);
-      const message = error._tag === "Left" ? error.left.message : "Quota exceeded";
+      const message = error._tag === "Left" ? error.left.message : "Quota or balance check failed";
       return c.json({ error: message }, 403);
     }
 
