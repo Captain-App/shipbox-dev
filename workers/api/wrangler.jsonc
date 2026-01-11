@@ -3,6 +3,7 @@
   "name": "shipbox-api",
   "main": "src/index.ts",
   "compatibility_date": "2025-01-09",
+  "compatibility_flags": ["nodejs_compat"],
   "routes": [
     { "pattern": "api.shipbox.dev", "zone_name": "shipbox.dev" }
   ],
