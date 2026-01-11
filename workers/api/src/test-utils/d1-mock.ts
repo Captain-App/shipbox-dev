@@ -1,63 +1,72 @@
 /**
  * Mock D1 database for testing.
- * Implements the minimal subset of D1 interface needed for tests.
+ * Implements a subset of the D1 interface used by shipbox-api.
  */
 export function createMockD1() {
+  // Store table data as arrays of objects
   const store = new Map<string, any[]>();
+  store.set("user_sessions", []);
 
   const prepare = (query: string) => {
     return {
       bind: (...args: any[]) => {
         return {
           all: async () => {
-            // Very simple mock: returns everything for a table
             const tableName = query.match(/FROM\s+(\w+)/i)?.[1];
-            return { results: store.get(tableName || "") || [] };
+            let results = store.get(tableName || "") || [];
+
+            // Simple WHERE clause filtering
+            if (query.includes("WHERE user_id = ?")) {
+              const userId = args[0];
+              results = results.filter((r) => r.user_id === userId);
+            }
+
+            // Simple ORDER BY handling
+            if (query.includes("ORDER BY created_at DESC")) {
+              results = [...results].sort((a, b) => b.created_at - a.created_at);
+            }
+
+            return { results };
           },
+
           first: async () => {
             const tableName = query.match(/FROM\s+(\w+)/i)?.[1];
-            const items = store.get(tableName || "") || [];
-            // Simple ID matching
-            const id = args[0];
-            return items.find(i => i.id === id) || null;
+            let results = store.get(tableName || "") || [];
+
+            if (query.includes("WHERE user_id = ? AND session_id = ?")) {
+              const [userId, sessionId] = args;
+              return results.find((r) => r.user_id === userId && r.session_id === sessionId) || null;
+            }
+
+            return results[0] || null;
           },
+
           run: async () => {
-            // Simple INSERT/UPDATE/DELETE mock
-            if (query.toUpperCase().startsWith('INSERT')) {
+            if (query.toUpperCase().startsWith("INSERT")) {
               const tableName = query.match(/INSERT\s+INTO\s+(\w+)/i)?.[1];
-              if (tableName) {
+              if (tableName === "user_sessions") {
+                const [userId, sessionId, createdAt] = args;
                 const current = store.get(tableName) || [];
-                // This is a hack, but enough for simple tests
-                // In real tests we'd want better SQL parsing
-                const item: any = {};
-                // ... logic to map args to columns ...
-                // For now, let's just assume args are in the right order for our sessions table
-                if (tableName === 'sessions') {
-                   const [id, userId, name, region, repository, status, createdAt, lastActivity] = args;
-                   store.set(tableName, [...current, { id, userId, name, region, repository, status, createdAt, lastActivity }]);
-                }
+                store.set(tableName, [...current, { user_id: userId, session_id: sessionId, created_at: createdAt }]);
               }
-            } else if (query.toUpperCase().startsWith('DELETE')) {
+            } else if (query.toUpperCase().startsWith("DELETE")) {
               const tableName = query.match(/FROM\s+(\w+)/i)?.[1];
-              const id = args[0];
-              if (tableName) {
+              if (tableName === "user_sessions") {
+                const [userId, sessionId] = args;
                 const current = store.get(tableName) || [];
-                const filtered = current.filter(i => i.id !== id);
-                const changes = current.length - filtered.length;
+                const filtered = current.filter((r) => !(r.user_id === userId && r.session_id === sessionId));
                 store.set(tableName, filtered);
-                return { meta: { changes } };
               }
             }
             return { meta: { changes: 1 } };
-          }
+          },
         };
-      }
+      },
     };
   };
 
   return {
     prepare,
     _store: store,
-    // Add other D1 methods as needed, or cast to D1Database
   } as unknown as D1Database & { _store: Map<string, any[]> };
 }

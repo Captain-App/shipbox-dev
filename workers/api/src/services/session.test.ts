@@ -4,57 +4,76 @@ import { createMockD1 } from "../test-utils/d1-mock";
 import { SessionService, makeSessionServiceLayer } from "./session";
 
 describe("SessionService", () => {
-  it("should create session with generated ID", async () => {
+  it("should register session ownership", async () => {
     const db = createMockD1();
     const layer = makeSessionServiceLayer(db);
     
     const program = Effect.gen(function* () {
       const service = yield* SessionService;
-      return yield* service.create("user-123", { 
-        name: "Test Sandbox", 
-        region: "lhr" 
-      });
+      yield* service.register("user-123", "session-abc");
+      return yield* service.listOwned("user-123");
     });
     
     const result = await Effect.runPromise(Effect.provide(program, layer));
     
-    expect(result.name).toBe("Test Sandbox");
-    expect(result.userId).toBe("user-123");
-    expect(result.region).toBe("lhr");
-    expect(result.id).toBeDefined();
-    expect(result.status).toBe("starting");
+    expect(result).toContain("session-abc");
+    expect(result.length).toBe(1);
   });
 
-  it("should list sessions for a user", async () => {
+  it("should check ownership correctly", async () => {
     const db = createMockD1();
     const layer = makeSessionServiceLayer(db);
     
     const program = Effect.gen(function* () {
       const service = yield* SessionService;
-      yield* service.create("user-123", { name: "Box 1", region: "lhr" });
-      yield* service.create("user-123", { name: "Box 2", region: "jfk" });
-      yield* service.create("user-456", { name: "Box 3", region: "nrt" });
+      yield* service.register("user-123", "session-abc");
       
-      return yield* service.list("user-123");
+      const isOwned = yield* service.checkOwnership("user-123", "session-abc");
+      const isOtherOwned = yield* service.checkOwnership("user-456", "session-abc");
+      
+      return { isOwned, isOtherOwned };
     });
     
-    const results = await Effect.runPromise(Effect.provide(program, layer));
+    const { isOwned, isOtherOwned } = await Effect.runPromise(Effect.provide(program, layer));
     
-    // In our simplified mock, all results for the table are returned
-    expect(results.length).toBe(3); 
+    expect(isOwned).toBe(true);
+    expect(isOtherOwned).toBe(false);
   });
 
-  it("should fail when session not found", async () => {
+  it("should unregister session ownership", async () => {
     const db = createMockD1();
     const layer = makeSessionServiceLayer(db);
     
     const program = Effect.gen(function* () {
       const service = yield* SessionService;
-      return yield* service.get("user-123", "non-existent");
+      yield* service.register("user-123", "session-abc");
+      yield* service.unregister("user-123", "session-abc");
+      return yield* service.listOwned("user-123");
     });
     
-    const result = await Effect.runPromiseExit(Effect.provide(program, layer));
+    const result = await Effect.runPromise(Effect.provide(program, layer));
     
-    expect(result._tag).toBe("Failure");
+    expect(result).not.toContain("session-abc");
+    expect(result.length).toBe(0);
+  });
+
+  it("should list owned sessions in reverse chronological order", async () => {
+    const db = createMockD1();
+    const layer = makeSessionServiceLayer(db);
+    
+    const program = Effect.gen(function* () {
+      const service = yield* SessionService;
+      yield* service.register("user-123", "session-1");
+      yield* Effect.sleep("1100 millis");
+      yield* service.register("user-123", "session-2");
+      
+      return yield* service.listOwned("user-123");
+    });
+    
+    const result = await Effect.runPromise(Effect.provide(program, layer));
+    
+    // Most recent first
+    expect(result[0]).toBe("session-2");
+    expect(result[1]).toBe("session-1");
   });
 });
