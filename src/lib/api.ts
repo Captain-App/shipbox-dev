@@ -87,5 +87,66 @@ export const api = {
     const res = await fetch(`${API_BASE_URL}/billing/balance`, { headers });
     if (!res.ok) throw new Error('Failed to fetch balance');
     return res.json();
+  },
+
+  // GitHub integration
+  async getGitHubStatus(): Promise<{ installationId: number; accountLogin: string; accountType: string } | null> {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/github/status`, { headers });
+    if (!res.ok) throw new Error('Failed to fetch GitHub status');
+    return res.json();
+  },
+
+  async linkGitHub(installationId: string): Promise<void> {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/github/link`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ installationId })
+    });
+    if (!res.ok) throw new Error('Failed to link GitHub');
+  },
+
+  async getGitHubRepos(): Promise<any[]> {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/github/repos`, { headers });
+    if (!res.ok) throw new Error('Failed to fetch repositories');
+    return res.json();
+  },
+
+  async disconnectGitHub(): Promise<void> {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/github/installation`, {
+      method: 'DELETE',
+      headers
+    });
+    if (!res.ok) throw new Error('Failed to disconnect GitHub');
+  },
+
+  // Settings & API Keys
+  async getSettings(): Promise<{ anthropicHint: string | null }> {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/settings/api-keys`, { headers });
+    if (!res.ok) throw new Error('Failed to fetch settings');
+    return res.json();
+  },
+
+  async setAnthropicKey(apiKey: string): Promise<void> {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/settings/api-keys/anthropic`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ apiKey })
+    });
+    if (!res.ok) throw new Error('Failed to store API key');
+  },
+
+  async deleteAnthropicKey(): Promise<void> {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/settings/api-keys/anthropic`, {
+      method: 'DELETE',
+      headers
+    });
+    if (!res.ok) throw new Error('Failed to delete API key');
   }
 };

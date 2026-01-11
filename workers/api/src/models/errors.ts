@@ -17,3 +17,12 @@ export class SessionStorageError extends Schema.TaggedError<SessionStorageError>
     return `Session storage error: ${this.cause}`;
   }
 }
+
+export class GithubError extends Schema.TaggedError<GithubError>()(
+  "GithubError",
+  { cause: Schema.String }
+) {
+  override get message(): string {
+    return `GitHub API error: ${this.cause}`;
+  }
+}

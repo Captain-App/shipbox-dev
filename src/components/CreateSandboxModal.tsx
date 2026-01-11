@@ -1,7 +1,8 @@
-import { useState } from "react"
-import { Box, X, Github, Zap } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Box, X, Github, Zap, Loader2, Search, Check } from "lucide-react"
 import { Button } from "./ui/Button"
 import { cn } from "../lib/utils"
+import { api } from "../lib/api"
 
 interface CreateSandboxModalProps {
   isOpen: boolean
@@ -20,6 +21,24 @@ export function CreateSandboxModal({ isOpen, onClose, onCreate }: CreateSandboxM
   const [name, setName] = useState("")
   const [selectedRegion, setSelectedRegion] = useState("lhr")
   const [repo, setRepo] = useState("")
+  const [githubRepos, setGithubRepos] = useState<any[]>([])
+  const [loadingRepos, setLoadingRepos] = useState(false)
+  const [showRepoPicker, setShowRepoPicker] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+
+  useEffect(() => {
+    if (isOpen) {
+      setLoadingRepos(true)
+      api.getGitHubRepos()
+        .then(repos => setGithubRepos(repos))
+        .catch(() => setGithubRepos([]))
+        .finally(() => setLoadingRepos(false))
+    }
+  }, [isOpen])
+
+  const filteredRepos = githubRepos.filter(r => 
+    r.full_name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   if (!isOpen) return null
 
@@ -38,7 +57,7 @@ export function CreateSandboxModal({ isOpen, onClose, onCreate }: CreateSandboxM
               <Box className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h2 className="text-2xl font-black uppercase tracking-tighter">New Sandbox Box</h2>
+              <h2 className="text-2xl font-black uppercase tracking-tighter text-white">New Sandbox Box</h2>
               <p className="text-muted-foreground text-sm">Spin up a fresh persistent agent environment.</p>
             </div>
           </div>
@@ -51,7 +70,7 @@ export function CreateSandboxModal({ isOpen, onClose, onCreate }: CreateSandboxM
                 placeholder="e.g. My New Agent"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary transition-all"
               />
             </div>
 
@@ -78,16 +97,67 @@ export function CreateSandboxModal({ isOpen, onClose, onCreate }: CreateSandboxM
 
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Initial Repository (Optional)</label>
-              <div className="relative">
-                <Github className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="https://github.com/..."
-                  value={repo}
-                  onChange={(e) => setRepo(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-all"
-                />
-              </div>
+              
+              {githubRepos.length > 0 ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setShowRepoPicker(!showRepoPicker)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-left text-white flex items-center justify-between hover:bg-white/10 transition-all"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Github className="w-4 h-4 text-muted-foreground" />
+                      <span>{repo || "Select from GitHub..."}</span>
+                    </div>
+                    {loadingRepos ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                  </button>
+
+                  {showRepoPicker && (
+                    <div className="absolute z-10 left-0 right-0 mt-2 p-2 rounded-2xl bg-slate-900 border border-white/10 shadow-2xl max-h-64 overflow-y-auto">
+                      <input
+                        type="text"
+                        placeholder="Search repositories..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs mb-2 focus:outline-none focus:ring-1 focus:ring-primary"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div className="space-y-1">
+                        {filteredRepos.map((r) => (
+                          <button
+                            key={r.id}
+                            onClick={() => {
+                              setRepo(r.html_url);
+                              if (!name) setName(r.name);
+                              setShowRepoPicker(false);
+                            }}
+                            className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 text-left text-xs transition-all"
+                          >
+                            <div className="flex flex-col">
+                              <span className="font-bold text-white">{r.name}</span>
+                              <span className="text-[10px] text-muted-foreground">{r.full_name}</span>
+                            </div>
+                            {repo === r.html_url && <Check className="w-3 h-3 text-primary" />}
+                          </button>
+                        ))}
+                        {filteredRepos.length === 0 && (
+                          <div className="py-4 text-center text-[10px] text-muted-foreground">No repositories found</div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="relative">
+                  <Github className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder="https://github.com/..."
+                    value={repo}
+                    onChange={(e) => setRepo(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                  />
+                </div>
+              )}
             </div>
           </div>
 
@@ -109,6 +179,3 @@ export function CreateSandboxModal({ isOpen, onClose, onCreate }: CreateSandboxM
     </div>
   )
 }
-
-
-

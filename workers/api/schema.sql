@@ -27,3 +27,22 @@ CREATE TABLE IF NOT EXISTS transactions (
 );
 
 CREATE INDEX IF NOT EXISTS idx_transactions_user ON transactions(user_id);
+
+-- BYOK: Encrypted API keys for users
+CREATE TABLE IF NOT EXISTS user_api_keys (
+  user_id TEXT PRIMARY KEY NOT NULL,
+  anthropic_key_encrypted TEXT,  -- Encrypted with platform key
+  key_hint TEXT,                  -- Last 4 chars for UI display
+  created_at INTEGER NOT NULL,
+  last_used INTEGER
+);
+
+-- GitHub App Installations
+CREATE TABLE IF NOT EXISTS github_installations (
+  user_id TEXT PRIMARY KEY NOT NULL,
+  installation_id INTEGER NOT NULL,
+  account_login TEXT NOT NULL,    -- GitHub username/org
+  account_type TEXT NOT NULL,     -- 'User' or 'Organization'
+  created_at INTEGER NOT NULL,
+  permissions TEXT                -- JSON of granted permissions
+);

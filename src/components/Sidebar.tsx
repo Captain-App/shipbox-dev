@@ -1,10 +1,10 @@
 import { 
   LayoutDashboard, 
   Terminal, 
-  Store, 
+  Box,
   Key, 
   CreditCard, 
-  Settings,
+  Settings as SettingsIcon,
   Zap,
   LogOut
 } from "lucide-react"
@@ -13,11 +13,10 @@ import { useAuth } from "../contexts/AuthContext"
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'boxes', label: 'Boxes', icon: Box },
   { id: 'activity', label: 'Activity', icon: Terminal },
-  { id: 'marketplace', label: 'Capabilities', icon: Store },
-  { id: 'secrets', label: 'Secrets', icon: Key },
   { id: 'billing', label: 'Billing', icon: CreditCard },
-  { id: 'settings', label: 'Settings', icon: Settings },
+  { id: 'settings', label: 'Settings', icon: SettingsIcon },
 ]
 
 interface SidebarProps {
@@ -34,8 +33,8 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
         <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
           <Zap className="w-5 h-5 text-primary-foreground" />
         </div>
-        <span className="text-xl font-black tracking-tighter uppercase">
-          Cloud Box
+        <span className="text-xl font-black tracking-tighter uppercase text-white">
+          Shipbox
         </span>
       </div>
 

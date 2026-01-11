@@ -5,6 +5,7 @@ import { AcceptanceModal } from './components/AcceptanceModal'
 import { CapabilityMarketplace } from './components/CapabilityMarketplace'
 import { SecretsVault } from './components/SecretsVault'
 import { BillingDashboard } from './components/BillingDashboard'
+import { Settings } from './components/Settings'
 import { CreateSandboxModal } from './components/CreateSandboxModal'
 import { BoxWorkspace } from './components/BoxWorkspace'
 import { Shield, Zap, Box, Server, Clock, CheckCircle2, Globe, Play, Loader2 } from 'lucide-react'
@@ -30,6 +31,18 @@ function App() {
   useEffect(() => {
     if (user) {
       fetchSandboxes()
+      
+      // Handle GitHub callback
+      const url = new URL(window.location.href);
+      const installationId = url.searchParams.get("installation_id");
+      if (installationId) {
+        api.linkGitHub(installationId).then(() => {
+          url.searchParams.delete("installation_id");
+          url.searchParams.delete("setup_action");
+          window.history.replaceState({}, "", url.toString());
+          setActiveTab("settings");
+        }).catch(err => console.error("Failed to link GitHub:", err));
+      }
     }
   }, [user])
 
@@ -222,23 +235,19 @@ function App() {
               </div>
             )}
 
-            {activeTab === 'marketplace' && (
-              <CapabilityMarketplace />
-            )}
-
-            {activeTab === 'secrets' && (
-              <SecretsVault />
-            )}
-
             {activeTab === 'billing' && (
               <BillingDashboard />
             )}
 
             {activeTab === 'settings' && (
+              <Settings />
+            )}
+
+            {activeTab === 'boxes' && (
               <div className="space-y-8">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <h2 className="text-3xl font-black uppercase tracking-tighter">Box Settings</h2>
+                    <h2 className="text-3xl font-black uppercase tracking-tighter text-white">Boxes</h2>
                     <p className="text-muted-foreground">Manage your agent instances and environment configuration.</p>
                   </div>
                   <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
@@ -258,7 +267,7 @@ function App() {
                           <Server className="w-6 h-6" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-black uppercase tracking-tight">{sb.title || sb.id}</h3>
+                          <h3 className="text-lg font-black uppercase tracking-tight text-white">{sb.title || sb.id}</h3>
                           <div className="flex items-center gap-4 mt-1">
                             <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                               <Globe className="w-3 h-3" />

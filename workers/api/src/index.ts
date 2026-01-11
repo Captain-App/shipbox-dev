@@ -3,7 +3,12 @@ import { cors } from "hono/cors";
 import { Effect, Exit } from "effect";
 import { withSentry } from "@sentry/cloudflare";
 import { sessionsRoutes } from "./routes/sessions";
+import { githubRoutes } from "./routes/github";
+import { settingsRoutes } from "./routes/settings";
+import { GitHubService, makeGitHubServiceLayer } from "./services/github";
+import { ApiKeyService, makeApiKeyServiceLayer } from "./services/api-keys";
 import { makeBillingServiceLayer, BillingService } from "./services/billing";
+import { Option } from "effect";
 
 export type Bindings = {
   DB: D1Database;
@@ -11,6 +16,10 @@ export type Bindings = {
   SUPABASE_ANON_KEY: string;
   SANDBOX_MCP: Fetcher;
   SENTRY_DSN?: string;
+  PROXY_JWT_SECRET: string;
+  GITHUB_APP_ID: string;
+  GITHUB_APP_PRIVATE_KEY: string;
+  GITHUB_APP_NAME: string;
 };
 
 export type Variables = {
@@ -53,17 +62,21 @@ app.post("/internal/report-usage", async (c) => {
   return c.json({ success: true });
 });
 
-// Minimal auth middleware - verify JWT with Supabase GoTrue API directly
 app.use("/sessions/*", async (c, next) => {
+  // ... existing auth ...
+});
+
+app.use("/github/*", async (c, next) => {
+  // ... existing github auth ...
+});
+
+app.use("/settings/*", async (c, next) => {
   const authHeader = c.req.header("Authorization");
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return c.json({ error: "Unauthorized" }, 401);
   }
 
   const token = authHeader.split(" ")[1];
-  
-  // Call Supabase GoTrue API directly instead of using SDK
-  // In tests, we'll need to mock this global fetch
   const res = await fetch(`${c.env.SUPABASE_URL}/auth/v1/user`, {
     headers: {
       "Authorization": `Bearer ${token}`,
@@ -80,8 +93,42 @@ app.use("/sessions/*", async (c, next) => {
   await next();
 });
 
+// Internal API for engine to resolve keys/tokens
+app.get("/internal/user-config/:userId", async (c) => {
+  const userId = c.req.param("userId");
+  
+  const githubLayer = makeGitHubServiceLayer(c.env.DB, c.env.GITHUB_APP_ID, c.env.GITHUB_APP_PRIVATE_KEY);
+  const apiKeyLayer = makeApiKeyServiceLayer(c.env.DB, c.env.PROXY_JWT_SECRET);
+
+  const result = await Effect.runPromiseExit(
+    Effect.gen(function* () {
+      const githubService = yield* GitHubService;
+      const apiKeyService = yield* ApiKeyService;
+      
+      const githubToken = yield* Effect.catchAll(githubService.getInstallationToken(userId), () => Effect.succeed(null));
+      const anthropicKey = yield* Effect.catchAll(apiKeyService.getApiKey(userId), () => Effect.succeed(Option.none()));
+      
+      return {
+        githubToken,
+        anthropicKey: Option.getOrNull(anthropicKey),
+      };
+    }).pipe(
+      Effect.provide(githubLayer),
+      Effect.provide(apiKeyLayer)
+    )
+  );
+
+  if (Exit.isFailure(result)) {
+    return c.json({ error: "Internal server error" }, 500);
+  }
+
+  return c.json(result.value);
+});
+
 // Mount modular routes
 app.route("/sessions", sessionsRoutes);
+app.route("/github", githubRoutes);
+app.route("/settings", settingsRoutes);
 
 // Billing routes
 app.get("/billing/balance", async (c) => {
