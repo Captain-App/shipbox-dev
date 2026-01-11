@@ -51,8 +51,8 @@ export function createMockD1() {
           },
 
           run: async () => {
+            const tableName = query.match(/(?:INSERT\s+INTO|FROM|UPDATE)\s+(\w+)/i)?.[1];
             if (query.toUpperCase().startsWith("INSERT")) {
-              const tableName = query.match(/INSERT\s+INTO\s+(\w+)/i)?.[1];
               if (tableName) {
                 const current = store.get(tableName) || [];
                 if (tableName === "user_sessions") {
@@ -68,7 +68,6 @@ export function createMockD1() {
                 }
               }
             } else if (query.toUpperCase().startsWith("DELETE")) {
-              const tableName = query.match(/FROM\s+(\w+)/i)?.[1];
               if (tableName === "user_sessions") {
                 const [userId, sessionId] = args;
                 const current = store.get(tableName) || [];

@@ -62,6 +62,7 @@ describe("Sessions Routes", () => {
       }),
       env
     );
+    expect(createRes.status).toBe(201);
     const created = await createRes.json() as any;
 
     // 2. List sessions
@@ -89,6 +90,7 @@ describe("Sessions Routes", () => {
       }),
       env
     );
+    expect(createRes.status).toBe(201);
     const created = await createRes.json() as any;
 
     // Try to access as user-123 (success)
@@ -127,6 +129,7 @@ describe("Sessions Routes", () => {
       }),
       env
     );
+    expect(createRes.status).toBe(201);
     const created = await createRes.json() as any;
 
     const res = await app.fetch(
