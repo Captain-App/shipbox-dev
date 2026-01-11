@@ -1,4 +1,4 @@
-# Phase 3: Production
+# Phase 4: Production
 
 ## Overview
 Phase 3 transforms the platform into a viable commercial product by adding billing, monitoring, and robust security.
