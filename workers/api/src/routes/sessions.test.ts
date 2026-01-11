@@ -58,7 +58,7 @@ describe("Sessions Routes", () => {
       new Request("http://localhost/sessions", {
         method: "POST",
         headers: { ...authHeaders, "Content-Type": "application/json" },
-        body: JSON.stringify({ name: "Box 1" }),
+        body: JSON.stringify({ name: "Box 1", region: "lhr" }),
       }),
       env
     );
@@ -86,7 +86,7 @@ describe("Sessions Routes", () => {
       new Request("http://localhost/sessions", {
         method: "POST",
         headers: { ...authHeaders, "Content-Type": "application/json" },
-        body: JSON.stringify({ name: "Box 1" }),
+        body: JSON.stringify({ name: "Box 1", region: "lhr" }),
       }),
       env
     );
@@ -125,7 +125,7 @@ describe("Sessions Routes", () => {
       new Request("http://localhost/sessions", {
         method: "POST",
         headers: { ...authHeaders, "Content-Type": "application/json" },
-        body: JSON.stringify({ name: "To Delete" }),
+        body: JSON.stringify({ name: "To Delete", region: "lhr" }),
       }),
       env
     );
