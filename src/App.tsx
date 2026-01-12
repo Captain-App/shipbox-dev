@@ -94,14 +94,10 @@ function App() {
   }
 
   const handleCreateSandbox = async (name: string, region: string, repository?: string) => {
-    try {
-      const newSandbox = await api.createSession(name, region, repository)
-      setSandboxes(prev => [newSandbox, ...prev])
-      setActiveSandbox(newSandbox)
-      setIsCreateModalOpen(false)
-    } catch (error) {
-      console.error('Failed to create sandbox:', error)
-    }
+    const newSandbox = await api.createSession(name, region, repository)
+    setSandboxes(prev => [newSandbox, ...prev])
+    setActiveSandbox(newSandbox)
+    setIsCreateModalOpen(false)
   }
 
   const handleOpenBox = (sandbox?: Sandbox) => {

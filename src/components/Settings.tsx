@@ -51,9 +51,14 @@ export function Settings() {
     }
   };
 
-  const handleConnectGitHub = () => {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8787';
-    window.location.href = `${apiUrl}/github/install`;
+  const handleConnectGitHub = async () => {
+    try {
+      const { url } = await api.getGitHubInstallUrl();
+      window.location.href = url;
+    } catch (err) {
+      console.error("Failed to get GitHub install URL:", err);
+      alert("Failed to initiate GitHub connection");
+    }
   };
 
   const handleDisconnectGitHub = async () => {

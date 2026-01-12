@@ -42,7 +42,7 @@ export type RepositoryInfo = typeof RepositoryInfo.Type;
  */
 export const SessionConfig = Schema.Struct({
   defaultModel: Schema.String,
-  region: Schema.optionalWith(Schema.String, { exact: true }),
+  region: Schema.optional(Schema.String),
 });
 export type SessionConfig = typeof SessionConfig.Type;
 
@@ -57,12 +57,12 @@ export const SessionMetadata = Schema.Struct({
   status: SessionStatus,
   workspacePath: Schema.String,
   webUiUrl: Schema.String,
-  userId: Schema.optionalWith(Schema.String, { exact: true }),
-  repository: Schema.optionalWith(RepositoryInfo, { exact: true }),
-  title: Schema.optionalWith(Schema.String, { exact: true }),
+  userId: Schema.optional(Schema.String),
+  repository: Schema.optional(RepositoryInfo),
+  title: Schema.optional(Schema.String),
   config: SessionConfig,
-  opencodeSessionId: Schema.optionalWith(Schema.String, { exact: true }),
-  clonedRepos: Schema.optionalWith(Schema.Array(Schema.String), { exact: true }),
+  opencodeSessionId: Schema.optional(Schema.String),
+  clonedRepos: Schema.optional(Schema.Array(Schema.String)),
 });
 export type SessionMetadata = typeof SessionMetadata.Type;
 
@@ -84,7 +84,7 @@ export interface Sandbox extends Omit<SessionMetadata, 'sessionId'> {
 export const CreateSessionInput = Schema.Struct({
   name: Schema.String,
   region: Schema.String,
-  repository: Schema.optionalWith(Schema.String, { exact: true }),
+  repository: Schema.optional(Schema.String),
 });
 export type CreateSessionInput = typeof CreateSessionInput.Type;
 

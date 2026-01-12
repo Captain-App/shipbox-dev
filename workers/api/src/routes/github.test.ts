@@ -70,7 +70,7 @@ describe("GitHub Routes", () => {
     "Authorization": "Bearer valid-token",
   };
 
-  it("GET /github/install should redirect to github", async () => {
+  it("GET /github/install should return installation url", async () => {
     const res = await app.fetch(
       new Request("http://localhost/github/install", {
         headers: authHeaders,
@@ -78,8 +78,10 @@ describe("GitHub Routes", () => {
       env
     );
 
-    expect(res.status).toBe(302);
-    expect(res.headers.get("Location")).toContain("github.com/apps/shipbox/installations/new");
+    expect(res.status).toBe(200);
+    const data = await res.json() as { url: string };
+    expect(data.url).toContain("github.com/apps/shipbox/installations/new");
+    expect(data.url).toContain("state=user-123");
   });
 
   it("POST /github/link should link installation to user", async () => {

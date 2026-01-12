@@ -142,6 +142,13 @@ export const api = {
     return res.json();
   },
 
+  async getGitHubInstallUrl(): Promise<{ url: string }> {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE_URL}/github/install`, { headers });
+    if (!res.ok) throw new Error('Failed to fetch GitHub installation URL');
+    return res.json();
+  },
+
   async linkGitHub(installationId: string): Promise<void> {
     const headers = await getAuthHeaders();
     const res = await fetch(`${API_BASE_URL}/github/link`, {

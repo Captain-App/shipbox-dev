@@ -7,7 +7,7 @@ import { api } from "../lib/api"
 interface CreateSandboxModalProps {
   isOpen: boolean
   onClose: () => void
-  onCreate: (name: string, region: string, repository?: string) => void
+  onCreate: (name: string, region: string, repository?: string) => Promise<void>
 }
 
 const regions = [
@@ -30,10 +30,13 @@ export function CreateSandboxModal({ isOpen, onClose, onCreate }: CreateSandboxM
   const [loadingRepos, setLoadingRepos] = useState(false)
   const [showRepoPicker, setShowRepoPicker] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (isOpen) {
       setLoadingRepos(true)
+      setError(null)
       api.getGitHubRepos()
         .then(repos => setGithubRepos(repos))
         .catch(() => setGithubRepos([]))
@@ -45,6 +48,22 @@ export function CreateSandboxModal({ isOpen, onClose, onCreate }: CreateSandboxM
     r.full_name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
+  const handleInitialise = async () => {
+    const finalName = name || nameRef.current?.value || '';
+    const finalRepo = selectedRepo || repoRef.current?.value || '';
+    
+    if (!finalName) return;
+    
+    setIsLoading(true);
+    setError(null);
+    try {
+      await onCreate(finalName, selectedRegion, finalRepo || undefined);
+    } catch (err: any) {
+      setError(err.message || 'Failed to initialise sandbox');
+      setIsLoading(false);
+    }
+  };
+
   if (!isOpen) return null
 
   return (
@@ -52,7 +71,7 @@ export function CreateSandboxModal({ isOpen, onClose, onCreate }: CreateSandboxM
       <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
       
       <div className="relative w-full max-w-xl p-6 md:p-8 rounded-[2.5rem] border border-white/10 bg-slate-950 shadow-2xl overflow-y-auto max-h-[90vh]">
-        <button onClick={onClose} className="absolute top-6 right-6 p-2 rounded-full hover:bg-white/5 text-muted-foreground transition-colors">
+        <button onClick={onClose} className="absolute top-6 right-6 p-2 rounded-full hover:bg-white/5 text-muted-foreground transition-colors" disabled={isLoading}>
           <X className="w-5 h-5" />
         </button>
 
@@ -68,6 +87,12 @@ export function CreateSandboxModal({ isOpen, onClose, onCreate }: CreateSandboxM
           </div>
 
           <div className="space-y-4 md:space-y-6">
+            {error && (
+              <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold uppercase tracking-wider">
+                {error}
+              </div>
+            )}
+
             <div className="space-y-2">
               <label htmlFor="sandbox-name" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Box Name</label>
               <input
@@ -80,7 +105,8 @@ export function CreateSandboxModal({ isOpen, onClose, onCreate }: CreateSandboxM
                 aria-required="true"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary transition-all text-sm"
+                disabled={isLoading}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary transition-all text-sm disabled:opacity-50"
               />
             </div>
 
@@ -91,8 +117,9 @@ export function CreateSandboxModal({ isOpen, onClose, onCreate }: CreateSandboxM
                   <button
                     key={region.id}
                     onClick={() => setSelectedRegion(region.id)}
+                    disabled={isLoading}
                     className={cn(
-                      "flex items-center gap-3 p-3 rounded-xl border transition-all text-left",
+                      "flex items-center gap-3 p-3 rounded-xl border transition-all text-left disabled:opacity-50",
                       selectedRegion === region.id 
                         ? "bg-primary/10 border-primary text-primary" 
                         : "bg-white/5 border-white/5 hover:border-white/10 text-muted-foreground"
@@ -112,7 +139,8 @@ export function CreateSandboxModal({ isOpen, onClose, onCreate }: CreateSandboxM
                 <div className="relative">
                   <button
                     onClick={() => setShowRepoPicker(!showRepoPicker)}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-left text-white flex items-center justify-between hover:bg-white/10 transition-all"
+                    disabled={isLoading}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-left text-white flex items-center justify-between hover:bg-white/10 transition-all disabled:opacity-50"
                   >
                     <div className="flex items-center gap-3 overflow-hidden">
                       <Github className="w-4 h-4 text-muted-foreground shrink-0" />
@@ -121,7 +149,7 @@ export function CreateSandboxModal({ isOpen, onClose, onCreate }: CreateSandboxM
                     {loadingRepos ? <Loader2 className="w-4 h-4 animate-spin shrink-0" /> : <Search className="w-4 h-4 shrink-0" />}
                   </button>
 
-                  {showRepoPicker && (
+                  {showRepoPicker && !isLoading && (
                     <div className="absolute z-10 left-0 right-0 mt-2 p-2 rounded-2xl bg-slate-900 border border-white/10 shadow-2xl max-h-64 overflow-y-auto" role="listbox" aria-label="Repository list">
                       <input
                         ref={searchRef}
@@ -172,7 +200,8 @@ export function CreateSandboxModal({ isOpen, onClose, onCreate }: CreateSandboxM
                     type="text"
                     placeholder="https://github.com/..."
                     aria-label="Repository URL"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                    disabled={isLoading}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary transition-all disabled:opacity-50"
                   />
                 </div>
               )}
@@ -182,16 +211,12 @@ export function CreateSandboxModal({ isOpen, onClose, onCreate }: CreateSandboxM
           <div className="pt-4">
             <Button 
               className="w-full py-6 text-lg uppercase tracking-widest gap-3"
-              disabled={!name}
-              onClick={() => {
-                const finalName = name || nameRef.current?.value || '';
-                const finalRepo = selectedRepo || repoRef.current?.value || '';
-                if (finalName) onCreate(finalName, selectedRegion, finalRepo);
-              }}
+              disabled={!name || isLoading}
+              onClick={handleInitialise}
               aria-label="Create new sandbox"
             >
-              <Zap className="w-5 h-5" />
-              Initialise Sandbox
+              {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Zap className="w-5 h-5" />}
+              {isLoading ? "Initialising..." : "Initialise Sandbox"}
             </Button>
             <p className="text-[10px] text-center text-muted-foreground mt-4 uppercase tracking-widest">
               Standard compute rates apply: approx. £0.01 / hour idle

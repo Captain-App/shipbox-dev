@@ -1,3 +1,6 @@
+import { CreateSessionInput } from "@shipbox/shared";
+import { Effect, Schema } from "effect";
+
 /**
  * Mock Fetcher for service bindings.
  */
@@ -13,6 +16,14 @@ export function createMockSandboxMcp() {
     if (path === "/internal/sessions") {
       if (method === "POST") {
         const body = JSON.parse(init?.body as string);
+        
+        // Validate input against schema to catch frontend/api mismatches in tests
+        const decodeResult = Effect.runSyncExit(Schema.decodeUnknown(CreateSessionInput)(body));
+        if (decodeResult._tag === "Failure") {
+          return new Response(JSON.stringify({ error: "Invalid input schema" }), { status: 400 });
+        }
+        const inputData = decodeResult.value;
+
         const sessionId = Math.random().toString(36).substring(2, 10);
         const now = Date.now();
         const session = {
@@ -23,7 +34,8 @@ export function createMockSandboxMcp() {
           status: "active",
           workspacePath: "/workspace",
           webUiUrl: `https://engine/session/${sessionId}/`,
-          title: body.name || "Test Box",
+          title: inputData.name || "Test Box",
+          repository: inputData.repository ? { url: inputData.repository, branch: "main" } : undefined,
           config: { defaultModel: "claude-3-5-sonnet" },
         };
         sessions.set(sessionId, session);

@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, act } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { CreateSandboxModal } from './CreateSandboxModal'
 
@@ -15,7 +15,7 @@ describe('CreateSandboxModal', () => {
       <CreateSandboxModal 
         isOpen={true} 
         onClose={vi.fn()} 
-        onCreate={vi.fn()} 
+        onCreate={vi.fn().mockResolvedValue(undefined)} 
       />
     )
     
@@ -23,8 +23,8 @@ describe('CreateSandboxModal', () => {
     expect(screen.getByPlaceholderText(/e.g. My New Agent/i)).toBeInTheDocument()
   })
 
-  it('calls onCreate with correct data', () => {
-    const onCreate = vi.fn()
+  it('calls onCreate with correct data', async () => {
+    const onCreate = vi.fn().mockResolvedValue(undefined)
     render(
       <CreateSandboxModal 
         isOpen={true} 
@@ -39,7 +39,7 @@ describe('CreateSandboxModal', () => {
     const createButton = screen.getByText(/Initialise Sandbox/i)
     fireEvent.click(createButton)
     
-    expect(onCreate).toHaveBeenCalledWith('My Agent', 'lhr', '')
+    expect(onCreate).toHaveBeenCalledWith('My Agent', 'lhr', undefined)
   })
 
   it('disables button when name is empty', () => {
@@ -47,11 +47,39 @@ describe('CreateSandboxModal', () => {
       <CreateSandboxModal 
         isOpen={true} 
         onClose={vi.fn()} 
-        onCreate={vi.fn()} 
+        onCreate={vi.fn().mockResolvedValue(undefined)} 
       />
     )
     
     const createButton = screen.getByText(/Initialise Sandbox/i)
     expect(createButton).toBeDisabled()
+  })
+
+  it('shows loading state during creation', async () => {
+    let resolveCreate: (value: void | PromiseLike<void>) => void = () => {};
+    const onCreate = vi.fn().mockReturnValue(new Promise<void>((resolve) => {
+      resolveCreate = resolve;
+    }));
+    
+    render(
+      <CreateSandboxModal 
+        isOpen={true} 
+        onClose={vi.fn()} 
+        onCreate={onCreate} 
+      />
+    )
+    
+    const nameInput = screen.getByPlaceholderText(/e.g. My New Agent/i)
+    fireEvent.change(nameInput, { target: { value: 'My Agent' } })
+    
+    const createButton = screen.getByText(/Initialise Sandbox/i)
+    fireEvent.click(createButton)
+    
+    expect(screen.getByText(/Initialising.../i)).toBeInTheDocument()
+    expect(createButton).toBeDisabled()
+    
+    await act(async () => {
+      resolveCreate();
+    });
   })
 })

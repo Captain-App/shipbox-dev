@@ -24,9 +24,10 @@ async function verifySignature(payload: string, signature: string | null, secret
 export const githubRoutes = new Hono<{ Bindings: Bindings; Variables: Variables }>()
   .get("/install", async (c) => {
     const user = c.get("user");
-    // Redirect to GitHub App installation page with user ID in state
+    // Return GitHub App installation page URL with user ID in state
     const appName = c.env.GITHUB_APP_NAME || "shipbox-dev";
-    return c.redirect(`https://github.com/apps/${appName}/installations/new?state=${user.id}`);
+    const url = `https://github.com/apps/${appName}/installations/new?state=${user.id}`;
+    return c.json({ url });
   })
   .post("/webhook", async (c) => {
     const signature = c.req.header("x-hub-signature-256");
