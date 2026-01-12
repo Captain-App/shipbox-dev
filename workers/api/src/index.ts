@@ -240,6 +240,21 @@ app.get("/internal/check-balance/:userId", async (c) => {
   return c.json({ ok: true });
 });
 
+/**
+ * Get headers to forward from incoming request to internal services.
+ * Specifically propagates OTel trace headers for observability.
+ */
+function getForwardedHeaders(request: Request): Record<string, string> {
+  const headers: Record<string, string> = {};
+  const traceparent = request.headers.get("traceparent");
+  const baggage = request.headers.get("baggage");
+  
+  if (traceparent) headers["traceparent"] = traceparent;
+  if (baggage) headers["baggage"] = baggage;
+  
+  return headers;
+}
+
 // Proxy to sandbox-mcp MCP endpoint
 app.all("/mcp", async (c) => {
   const user = c.get("user");
@@ -249,6 +264,12 @@ app.all("/mcp", async (c) => {
   const newRequest = new Request(c.req.raw);
   newRequest.headers.set("X-User-Id", user.id);
   newRequest.headers.set("X-Request-Id", requestId);
+  
+  // Propagate trace headers
+  const forwardHeaders = getForwardedHeaders(c.req.raw);
+  for (const [key, value] of Object.entries(forwardHeaders)) {
+    newRequest.headers.set(key, value);
+  }
   
   return c.env.SANDBOX_MCP.fetch(newRequest);
 });
@@ -271,6 +292,12 @@ app.all("/session/:sessionId/*", async (c) => {
   // Create a new request with the Request ID injected in headers
   const newRequest = new Request(c.req.raw);
   newRequest.headers.set("X-Request-Id", requestId);
+
+  // Propagate trace headers
+  const forwardHeaders = getForwardedHeaders(c.req.raw);
+  for (const [key, value] of Object.entries(forwardHeaders)) {
+    newRequest.headers.set(key, value);
+  }
 
   // Proxy to sandbox-mcp
   return c.env.SANDBOX_MCP.fetch(newRequest);

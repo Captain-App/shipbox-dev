@@ -28,9 +28,17 @@ export const sessionsRoutes = new Hono<{ Bindings: Bindings; Variables: Variable
     
     // Fetch metadata for each owned session
     // In a production app, we might want a bulk fetch endpoint in sandbox-mcp
+    const traceparent = c.req.header("traceparent");
+    const baggage = c.req.header("baggage");
+    const forwardHeaders: Record<string, string> = {};
+    if (traceparent) forwardHeaders["traceparent"] = traceparent;
+    if (baggage) forwardHeaders["baggage"] = baggage;
+
     const sessions = await Promise.all(
       sessionIds.map(async (id) => {
-        const res = await c.env.SANDBOX_MCP.fetch(`http://sandbox/internal/sessions/${id}`);
+        const res = await c.env.SANDBOX_MCP.fetch(`http://sandbox/internal/sessions/${id}`, {
+          headers: forwardHeaders,
+        });
         if (res.ok) {
           const s = await res.json() as any;
           return { ...s, id: s.sessionId };
@@ -91,11 +99,17 @@ export const sessionsRoutes = new Hono<{ Bindings: Bindings; Variables: Variable
       )
     );
 
+    const traceparent = c.req.header("traceparent");
+    const baggage = c.req.header("baggage");
+    const forwardHeaders: Record<string, string> = { "Content-Type": "application/json" };
+    if (traceparent) forwardHeaders["traceparent"] = traceparent;
+    if (baggage) forwardHeaders["baggage"] = baggage;
+
     // 1. Create session in sandbox-mcp
     const res = await c.env.SANDBOX_MCP.fetch("http://sandbox/internal/sessions", {
       method: "POST",
       body: JSON.stringify({ ...input, userId: user.id }),
-      headers: { "Content-Type": "application/json" }
+      headers: forwardHeaders
     });
 
     if (!res.ok) {
@@ -123,8 +137,16 @@ export const sessionsRoutes = new Hono<{ Bindings: Bindings; Variables: Variable
     const isOwned = await Effect.runPromise(service.checkOwnership(user.id, id));
     if (!isOwned) return c.json({ error: "Forbidden" }, 403);
 
+    const traceparent = c.req.header("traceparent");
+    const baggage = c.req.header("baggage");
+    const forwardHeaders: Record<string, string> = {};
+    if (traceparent) forwardHeaders["traceparent"] = traceparent;
+    if (baggage) forwardHeaders["baggage"] = baggage;
+
     // Proxy to sandbox-mcp
-    const res = await c.env.SANDBOX_MCP.fetch(`http://sandbox/internal/sessions/${id}`);
+    const res = await c.env.SANDBOX_MCP.fetch(`http://sandbox/internal/sessions/${id}`, {
+      headers: forwardHeaders
+    });
     if (!res.ok) return c.json({ error: "Session not found in engine" }, 404);
     
     const session = await res.json() as any;
@@ -143,8 +165,17 @@ export const sessionsRoutes = new Hono<{ Bindings: Bindings; Variables: Variable
     const isOwned = await Effect.runPromise(service.checkOwnership(user.id, id));
     if (!isOwned) return c.json({ error: "Forbidden" }, 403);
 
+    const traceparent = c.req.header("traceparent");
+    const baggage = c.req.header("baggage");
+    const forwardHeaders: Record<string, string> = {};
+    if (traceparent) forwardHeaders["traceparent"] = traceparent;
+    if (baggage) forwardHeaders["baggage"] = baggage;
+
     // Delete in sandbox-mcp
-    await c.env.SANDBOX_MCP.fetch(`http://sandbox/internal/sessions/${id}`, { method: "DELETE" });
+    await c.env.SANDBOX_MCP.fetch(`http://sandbox/internal/sessions/${id}`, { 
+      method: "DELETE",
+      headers: forwardHeaders
+    });
 
     // Unregister in D1
     await Effect.runPromise(service.unregister(user.id, id));
@@ -164,7 +195,16 @@ export const sessionsRoutes = new Hono<{ Bindings: Bindings; Variables: Variable
     const isOwned = await Effect.runPromise(service.checkOwnership(user.id, id));
     if (!isOwned) return c.json({ error: "Forbidden" }, 403);
 
+    const traceparent = c.req.header("traceparent");
+    const baggage = c.req.header("baggage");
+    const forwardHeaders: Record<string, string> = {};
+    if (traceparent) forwardHeaders["traceparent"] = traceparent;
+    if (baggage) forwardHeaders["baggage"] = baggage;
+
     // Start in sandbox-mcp
-    const res = await c.env.SANDBOX_MCP.fetch(`http://sandbox/internal/sessions/${id}/start`, { method: "POST" });
+    const res = await c.env.SANDBOX_MCP.fetch(`http://sandbox/internal/sessions/${id}/start`, { 
+      method: "POST",
+      headers: forwardHeaders
+    });
     return c.json(await res.json());
   });
