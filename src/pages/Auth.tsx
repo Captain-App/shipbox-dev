@@ -38,16 +38,16 @@ export function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md p-8 bg-white/5 border-white/10 backdrop-blur-xl rounded-[2.5rem]">
-        <div className="flex flex-col items-center text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center mb-4">
-            <Box className="w-8 h-8 text-primary" />
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 md:p-6">
+      <Card className="w-full max-w-md p-6 md:p-8 bg-white/5 border-white/10 backdrop-blur-xl rounded-[2.5rem]">
+        <div className="flex flex-col items-center text-center mb-6 md:mb-8">
+          <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-primary/20 flex items-center justify-center mb-4 shrink-0">
+            <Box className="w-7 h-7 md:w-8 md:h-8 text-primary" />
           </div>
-          <h1 className="text-3xl font-black uppercase tracking-tighter text-white">
+          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tighter text-white">
             Shipbox
           </h1>
-          <p className="text-muted-foreground text-sm mt-2">
+          <p className="text-muted-foreground text-xs md:text-sm mt-2">
             {mode === 'login' ? 'Welcome back, Architect' : 'Join the construction'}
           </p>
         </div>

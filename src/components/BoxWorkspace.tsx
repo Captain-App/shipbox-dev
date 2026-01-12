@@ -172,6 +172,7 @@ interface BoxWorkspaceProps {
 
 export function BoxWorkspace({ sandbox, onClose }: BoxWorkspaceProps) {
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [activeMobileTab, setActiveMobileTab] = useState<'chat' | 'preview'>('chat')
   const [chatWidth] = useState(380)
 
   const iframeUrl = sandbox.webUiUrl
@@ -179,30 +180,52 @@ export function BoxWorkspace({ sandbox, onClose }: BoxWorkspaceProps) {
   return (
     <div className="fixed inset-0 z-[80] bg-background flex flex-col">
       {/* Toolbar */}
-      <div className="h-12 bg-slate-950 border-b border-white/5 flex items-center justify-between px-4">
-        <div className="flex items-center gap-4">
+      <div className="h-12 md:h-14 bg-slate-950 border-b border-white/5 flex items-center justify-between px-2 md:px-4">
+        <div className="flex items-center gap-2 md:gap-4 overflow-hidden">
           <button 
             onClick={onClose}
-            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors shrink-0"
           >
             <ChevronLeft className="w-4 h-4" />
-            <span className="text-xs font-bold uppercase tracking-widest">Back to Dashboard</span>
+            <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest hidden sm:inline">Back</span>
           </button>
-          <div className="h-4 w-px bg-white/10" />
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-sm font-bold">{sandbox.title || sandbox.id}</span>
+          <div className="h-4 w-px bg-white/10 shrink-0" />
+          <div className="flex items-center gap-2 overflow-hidden">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shrink-0" />
+            <span className="text-sm font-bold truncate">{sandbox.title || sandbox.id}</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" className="gap-2">
+        {/* Mobile Tab Toggle */}
+        <div className="flex items-center bg-white/5 rounded-lg p-1 md:hidden">
+          <button
+            onClick={() => setActiveMobileTab('chat')}
+            className={cn(
+              "px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-md transition-all",
+              activeMobileTab === 'chat' ? "bg-primary text-white" : "text-muted-foreground"
+            )}
+          >
+            Chat
+          </button>
+          <button
+            onClick={() => setActiveMobileTab('preview')}
+            className={cn(
+              "px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-md transition-all",
+              activeMobileTab === 'preview' ? "bg-primary text-white" : "text-muted-foreground"
+            )}
+          >
+            Preview
+          </button>
+        </div>
+
+        <div className="flex items-center gap-1 md:gap-2">
+          <Button variant="ghost" size="sm" className="gap-2 hidden sm:flex">
             <ExternalLink className="w-3 h-3" />
-            Open in New Tab
+            <span className="hidden lg:inline">Open in New Tab</span>
           </Button>
           <button 
             onClick={() => setIsFullscreen(!isFullscreen)}
-            className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+            className="p-2 text-muted-foreground hover:text-foreground transition-colors hidden md:block"
           >
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </button>
@@ -210,16 +233,21 @@ export function BoxWorkspace({ sandbox, onClose }: BoxWorkspaceProps) {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden relative">
         {/* Chat Panel */}
-        {!isFullscreen && (
-          <div style={{ width: chatWidth }} className="flex-shrink-0">
-            <ChatPanel sandbox={sandbox} />
-          </div>
-        )}
+        <div className={cn(
+          "flex-shrink-0 transition-all duration-300 md:relative md:translate-x-0 md:opacity-100",
+          isFullscreen ? "hidden" : "w-full md:w-[380px]",
+          activeMobileTab === 'chat' ? "translate-x-0 opacity-100" : "absolute inset-0 -translate-x-full opacity-0 md:relative md:translate-x-0 md:opacity-100"
+        )}>
+          <ChatPanel sandbox={sandbox} />
+        </div>
 
         {/* Preview Frame */}
-        <div className="flex-1 bg-white relative">
+        <div className={cn(
+          "flex-1 bg-white relative transition-all duration-300",
+          activeMobileTab === 'preview' ? "translate-x-0 opacity-100" : "absolute inset-0 translate-x-full opacity-0 md:relative md:translate-x-0 md:opacity-100"
+        )}>
           <iframe 
             src={iframeUrl}
             className="w-full h-full border-0"
@@ -227,22 +255,22 @@ export function BoxWorkspace({ sandbox, onClose }: BoxWorkspaceProps) {
           />
           
           {/* Fallback content for demo */}
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-            <div className="text-center space-y-6 max-w-lg px-8">
-              <div className="w-20 h-20 mx-auto rounded-3xl bg-primary/20 flex items-center justify-center">
-                <Bot className="w-10 h-10 text-primary" />
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 pointer-events-none">
+            <div className="text-center space-y-4 md:space-y-6 max-w-lg px-6">
+              <div className="w-16 h-16 md:w-20 md:h-20 mx-auto rounded-3xl bg-primary/20 flex items-center justify-center">
+                <Bot className="w-8 h-8 md:w-10 md:h-10 text-primary" />
               </div>
-              <h1 className="text-4xl font-black tracking-tighter uppercase text-white">
+              <h1 className="text-2xl md:text-4xl font-black tracking-tighter uppercase text-white">
                 {sandbox.title || sandbox.id}
               </h1>
-              <p className="text-muted-foreground">
-                This is your box's hosted preview. Your agent can deploy websites, APIs, and admin dashboards here. Ask it to build something!
+              <p className="text-xs md:text-sm text-muted-foreground">
+                This is your box's hosted preview. Your agent can deploy websites, APIs, and admin dashboards here.
               </p>
-              <div className="flex items-center justify-center gap-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-[8px] md:text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                 <span>Cloudflare Sandbox</span>
-                <span>•</span>
+                <span className="hidden xs:inline">•</span>
                 <span>Workers for Platforms</span>
-                <span>•</span>
+                <span className="hidden xs:inline">•</span>
                 <span className="text-green-500">Live</span>
               </div>
             </div>

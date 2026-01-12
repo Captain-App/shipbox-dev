@@ -157,13 +157,13 @@ function App() {
           <>
             {activeTab === 'dashboard' && (
               !activeSandbox ? (
-                <div className="p-12 rounded-3xl border border-white/5 bg-white/5 text-center space-y-6">
-                  <div className="w-20 h-20 mx-auto rounded-3xl bg-primary/10 flex items-center justify-center">
-                    <Box className="w-10 h-10 text-primary" />
+                <div className="p-6 md:p-12 rounded-3xl border border-white/5 bg-white/5 text-center space-y-6">
+                  <div className="w-16 h-16 md:w-20 md:h-20 mx-auto rounded-3xl bg-primary/10 flex items-center justify-center">
+                    <Box className="w-8 h-8 md:w-10 md:h-10 text-primary" />
                   </div>
                   <div className="space-y-2">
-                    <h2 className="text-3xl font-black uppercase tracking-tighter">No Sandboxes Found</h2>
-                    <p className="text-muted-foreground">You haven't created any agent environments yet.</p>
+                    <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tighter">No Sandboxes Found</h2>
+                    <p className="text-sm md:text-base text-muted-foreground">You haven't created any agent environments yet.</p>
                   </div>
                   <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
                     <Zap className="w-4 h-4" />
@@ -171,12 +171,12 @@ function App() {
                   </Button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <div className="p-8 rounded-3xl border border-white/5 bg-white/5 backdrop-blur-xl col-span-2 relative overflow-hidden">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="p-6 md:p-8 rounded-3xl border border-white/5 bg-white/5 backdrop-blur-xl lg:col-span-2 relative overflow-hidden">
                     <div className="relative z-10">
-                      <div className="flex items-center justify-between mb-2">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 md:mb-2 gap-4">
                         <div className="flex items-center gap-3">
-                          <h1 className="text-4xl font-black tracking-tighter uppercase">{activeSandbox.title || activeSandbox.id}</h1>
+                          <h1 className="text-3xl md:text-4xl font-black tracking-tighter uppercase">{activeSandbox.title || activeSandbox.id}</h1>
                           <div className={cn(
                             "px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border",
                             activeSandbox.status === 'active' ? "bg-green-500/10 border-green-500/20 text-green-500" : "bg-white/5 border-white/10 text-muted-foreground"
@@ -184,14 +184,14 @@ function App() {
                             {activeSandbox.status}
                           </div>
                         </div>
-                        <Button onClick={() => handleOpenBox()} className="gap-2">
+                        <Button onClick={() => handleOpenBox()} className="gap-2 w-full md:w-auto">
                           <Play className="w-4 h-4" />
                           Open Box
                         </Button>
                       </div>
-                      <p className="text-muted-foreground">Persistent agent box initialized on {new Date(activeSandbox.createdAt).toLocaleDateString()}.</p>
+                      <p className="text-sm text-muted-foreground">Persistent agent box initialized on {new Date(activeSandbox.createdAt).toLocaleDateString()}.</p>
                       
-                      <div className="mt-8 flex gap-4">
+                      <div className="mt-8 flex flex-col sm:flex-row gap-4">
                         <div className="flex-1 p-4 rounded-2xl bg-white/5 border border-white/5">
                           <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Tasks Completed</div>
                           <div className="text-2xl font-black">{activeSandbox.tasksCompleted || 0}</div>
@@ -203,9 +203,9 @@ function App() {
                       </div>
 
                       {!isUnlocked && (
-                        <div className="mt-8 p-6 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-between">
+                        <div className="mt-8 p-4 md:p-6 rounded-2xl bg-primary/10 border border-primary/20 flex flex-col sm:flex-row items-center justify-between gap-4">
                           <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
                               <Zap className="w-6 h-6 text-primary" />
                             </div>
                             <div>
@@ -215,7 +215,7 @@ function App() {
                           </div>
                           <button 
                             onClick={() => setIsAcceptanceOpen(true)}
-                            className="px-6 py-2 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-lg shadow-lg"
+                            className="w-full sm:w-auto px-6 py-2 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-lg shadow-lg"
                           >
                             Enable
                           </button>
@@ -223,8 +223,8 @@ function App() {
                       )}
 
                       {isUnlocked && (
-                        <div className="mt-8 p-6 rounded-2xl bg-green-500/10 border border-green-500/20 flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
+                        <div className="mt-8 p-4 md:p-6 rounded-2xl bg-green-500/10 border border-green-500/20 flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center shrink-0">
                             <Shield className="w-6 h-6 text-green-500" />
                           </div>
                           <div>
@@ -240,7 +240,7 @@ function App() {
 
                   <div className="p-8 rounded-3xl border border-white/5 bg-primary/10 flex flex-col justify-center items-center text-center">
                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-2">Available Credits</span>
-                    <span className="text-5xl font-black tracking-tighter">£{((balance?.balanceCredits || 0) / 100).toFixed(2)}</span>
+                    <span className="text-4xl md:text-5xl font-black tracking-tighter">£{((balance?.balanceCredits || 0) / 100).toFixed(2)}</span>
                     <button 
                       onClick={() => setActiveTab('billing')}
                       className="mt-6 text-xs font-bold uppercase tracking-widest text-primary hover:underline"
@@ -267,13 +267,13 @@ function App() {
             )}
 
             {activeTab === 'boxes' && (
-              <div className="space-y-8">
-                <div className="flex items-center justify-between">
+              <div className="space-y-6 md:space-y-8">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="space-y-1">
-                    <h2 className="text-3xl font-black uppercase tracking-tighter text-white">Boxes</h2>
-                    <p className="text-muted-foreground">Manage your agent instances and environment configuration.</p>
+                    <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tighter text-white">Boxes</h2>
+                    <p className="text-sm text-muted-foreground">Manage your agent instances and environment configuration.</p>
                   </div>
-                  <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
+                  <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2 w-full sm:w-auto">
                     <Box className="w-4 h-4" />
                     Create New Box
                   </Button>
@@ -287,22 +287,22 @@ function App() {
                     </div>
                   ) : (
                     sandboxes.map((sb) => (
-                      <div key={sb.id} className="p-6 rounded-3xl border border-white/5 bg-white/5 flex items-center justify-between group hover:bg-white/10 transition-all">
-                        <div className="flex items-center gap-6">
+                      <div key={sb.id} className="p-4 md:p-6 rounded-3xl border border-white/5 bg-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-6 group hover:bg-white/10 transition-all">
+                        <div className="flex items-center gap-4 md:gap-6">
                           <div className={cn(
-                            "w-12 h-12 rounded-2xl flex items-center justify-center",
+                            "w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center shrink-0",
                             sb.status === 'active' ? "bg-green-500/10 text-green-500" : "bg-white/5 text-muted-foreground"
                           )}>
-                            <Server className="w-6 h-6" />
+                            <Server className="w-5 h-5 md:w-6 md:h-6" />
                           </div>
                           <div>
-                            <h3 className="text-lg font-black uppercase tracking-tight text-white">{sb.title || sb.id}</h3>
-                            <div className="flex items-center gap-4 mt-1">
-                              <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                            <h3 className="text-base md:text-lg font-black uppercase tracking-tight text-white">{sb.title || sb.id}</h3>
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">
+                              <div className="flex items-center gap-1.5 text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                                 <Globe className="w-3 h-3" />
                                 Cloudflare Sandbox
                               </div>
-                              <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                              <div className="flex items-center gap-1.5 text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                                 <Clock className="w-3 h-3" />
                                 {new Date(sb.createdAt).toLocaleDateString()}
                               </div>
@@ -310,31 +310,33 @@ function App() {
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-4">
-                          <div className="text-right mr-4">
+                        <div className="flex flex-row items-center justify-between sm:justify-end gap-4 border-t border-white/5 sm:border-0 pt-4 sm:pt-0">
+                          <div className="text-left sm:text-right sm:mr-4">
                             <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Status</div>
-                            <div className="text-sm font-bold text-primary uppercase">{sb.status}</div>
+                            <div className="text-xs md:text-sm font-bold text-primary uppercase">{sb.status}</div>
                           </div>
-                          {activeSandbox?.id === sb.id ? (
-                            <div className="flex items-center gap-2">
-                              <div className="px-4 py-2 rounded-xl bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                                <CheckCircle2 className="w-3 h-3" />
-                                Active
-                              </div>
-                              <Button onClick={() => handleOpenBox(sb)} size="sm" className="gap-2">
-                                <Play className="w-3 h-3" />
-                                Open
-                              </Button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              <Button variant="secondary" size="sm" onClick={() => setActiveSandbox(sb)}>Select</Button>
-                              <Button onClick={() => handleOpenBox(sb)} size="sm" className="gap-2">
-                                <Play className="w-3 h-3" />
-                                Open
-                              </Button>
-                            </div>
-                          )}
+                          <div className="flex items-center gap-2">
+                            {activeSandbox?.id === sb.id ? (
+                              <>
+                                <div className="px-3 md:px-4 py-2 rounded-xl bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                  <CheckCircle2 className="w-3 h-3" />
+                                  <span className="hidden xs:inline">Active</span>
+                                </div>
+                                <Button onClick={() => handleOpenBox(sb)} size="sm" className="gap-2">
+                                  <Play className="w-3 h-3" />
+                                  Open
+                                </Button>
+                              </>
+                            ) : (
+                              <>
+                                <Button variant="secondary" size="sm" onClick={() => setActiveSandbox(sb)}>Select</Button>
+                                <Button onClick={() => handleOpenBox(sb)} size="sm" className="gap-2">
+                                  <Play className="w-3 h-3" />
+                                  Open
+                                </Button>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))

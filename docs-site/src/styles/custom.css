@@ -100,3 +100,34 @@
 .sl-link-button.secondary:hover {
   background: rgba(255, 255, 255, 0.1) !important;
 }
+
+/* Mobile Responsiveness Improvements */
+@media (max-width: 50rem) {
+  .hero {
+    padding-top: 3rem !important;
+    padding-bottom: 3rem !important;
+    text-align: center;
+  }
+  
+  .hero .tagline {
+    font-size: 1.125rem !important;
+  }
+  
+  .card-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+  
+  /* Make sure images in guide don't overflow */
+  img {
+    border-radius: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* Fix for mobile menu button to ensure it's visible on our dark background */
+.mobile-sidebar-toggle {
+  background-color: rgba(30, 41, 59, 0.8) !important;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}

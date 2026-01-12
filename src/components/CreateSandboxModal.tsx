@@ -51,23 +51,23 @@ export function CreateSandboxModal({ isOpen, onClose, onCreate }: CreateSandboxM
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
       
-      <div className="relative w-full max-w-xl p-8 rounded-[2.5rem] border border-white/10 bg-slate-950 shadow-2xl">
+      <div className="relative w-full max-w-xl p-6 md:p-8 rounded-[2.5rem] border border-white/10 bg-slate-950 shadow-2xl overflow-y-auto max-h-[90vh]">
         <button onClick={onClose} className="absolute top-6 right-6 p-2 rounded-full hover:bg-white/5 text-muted-foreground transition-colors">
           <X className="w-5 h-5" />
         </button>
 
-        <div className="space-y-8">
+        <div className="space-y-6 md:space-y-8">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <Box className="w-6 h-6 text-primary" />
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Box className="w-5 h-5 md:w-6 md:h-6 text-primary" />
             </div>
             <div>
-              <h2 className="text-2xl font-black uppercase tracking-tighter text-white">New Sandbox Box</h2>
-              <p className="text-muted-foreground text-sm">Spin up a fresh persistent agent environment.</p>
+              <h2 className="text-xl md:text-2xl font-black uppercase tracking-tighter text-white">New Sandbox Box</h2>
+              <p className="text-muted-foreground text-xs md:text-sm">Spin up a fresh persistent agent environment.</p>
             </div>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-4 md:space-y-6">
             <div className="space-y-2">
               <label htmlFor="sandbox-name" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Box Name</label>
               <input
@@ -80,13 +80,13 @@ export function CreateSandboxModal({ isOpen, onClose, onCreate }: CreateSandboxM
                 aria-required="true"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary transition-all text-sm"
               />
             </div>
 
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Deploy Region</label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {regions.map((region) => (
                   <button
                     key={region.id}
@@ -114,11 +114,11 @@ export function CreateSandboxModal({ isOpen, onClose, onCreate }: CreateSandboxM
                     onClick={() => setShowRepoPicker(!showRepoPicker)}
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-left text-white flex items-center justify-between hover:bg-white/10 transition-all"
                   >
-                    <div className="flex items-center gap-3">
-                      <Github className="w-4 h-4 text-muted-foreground" />
-                      <span>{selectedRepo || "Select from GitHub..."}</span>
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <Github className="w-4 h-4 text-muted-foreground shrink-0" />
+                      <span className="truncate">{selectedRepo || "Select from GitHub..."}</span>
                     </div>
-                    {loadingRepos ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                    {loadingRepos ? <Loader2 className="w-4 h-4 animate-spin shrink-0" /> : <Search className="w-4 h-4 shrink-0" />}
                   </button>
 
                   {showRepoPicker && (
@@ -148,11 +148,11 @@ export function CreateSandboxModal({ isOpen, onClose, onCreate }: CreateSandboxM
                             }}
                             className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 text-left text-xs transition-all"
                           >
-                            <div className="flex flex-col">
-                              <span className="font-bold text-white">{r.name}</span>
-                              <span className="text-[10px] text-muted-foreground">{r.full_name}</span>
+                            <div className="flex flex-col overflow-hidden">
+                              <span className="font-bold text-white truncate">{r.name}</span>
+                              <span className="text-[10px] text-muted-foreground truncate">{r.full_name}</span>
                             </div>
-                                    {selectedRepo === r.html_url && <Check className="w-3 h-3 text-primary" />}
+                            {selectedRepo === r.html_url && <Check className="w-3 h-3 text-primary shrink-0" />}
                           </button>
                         ))}
                         {filteredRepos.length === 0 && (

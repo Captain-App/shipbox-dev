@@ -30,7 +30,7 @@ export function AcceptanceModal({ isOpen, onClose, onAccept }: AcceptanceModalPr
         onClick={onClose}
       />
       
-      <div className="relative w-full max-w-2xl p-8 rounded-[2rem] border border-red-500/20 bg-slate-950 shadow-[0_0_50px_rgba(239,68,68,0.1)]">
+      <div className="relative w-full max-w-2xl p-6 md:p-8 rounded-[2rem] border border-red-500/20 bg-slate-950 shadow-[0_0_50px_rgba(239,68,68,0.1)] overflow-y-auto max-h-[90vh]">
         <button 
           onClick={onClose}
           className="absolute top-6 right-6 p-2 rounded-full hover:bg-white/5 text-muted-foreground transition-colors"
@@ -38,30 +38,30 @@ export function AcceptanceModal({ isOpen, onClose, onAccept }: AcceptanceModalPr
           <X className="w-5 h-5" />
         </button>
 
-        <div className="flex flex-col items-center text-center space-y-6">
-          <div className="w-16 h-16 rounded-3xl bg-red-500/10 flex items-center justify-center">
-            <ShieldAlert className="w-8 h-8 text-red-500" />
+        <div className="flex flex-col items-center text-center space-y-4 md:space-y-6">
+          <div className="w-14 h-14 md:w-16 md:h-16 rounded-3xl bg-red-500/10 flex items-center justify-center shrink-0">
+            <ShieldAlert className="w-7 h-7 md:w-8 md:h-8 text-red-500" />
           </div>
 
           <div className="space-y-2">
-            <h2 className="text-3xl font-black uppercase tracking-tighter">Enter Unlocked Mode</h2>
-            <p className="text-muted-foreground max-w-md">
-              You are about to grant this agent full autonomous access to your computer environment, network, and credentials. This is a power tool with best-effort safety.
+            <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tighter">Enter Unlocked Mode</h2>
+            <p className="text-xs md:text-sm text-muted-foreground max-w-md">
+              You are about to grant this agent full autonomous access to your computer environment, network, and credentials.
             </p>
           </div>
 
-          <div className="w-full p-6 rounded-2xl bg-white/5 border border-white/5 text-left space-y-4">
+          <div className="w-full p-4 md:p-6 rounded-2xl bg-white/5 border border-white/5 text-left space-y-3 md:space-y-4">
             <div className="flex items-start gap-3">
               <div className="w-1 h-1 rounded-full bg-red-500 mt-2 flex-shrink-0" />
-              <p className="text-sm text-red-200/80">The agent may execute unpredictable commands.</p>
+              <p className="text-xs md:text-sm text-red-200/80">The agent may execute unpredictable commands.</p>
             </div>
             <div className="flex items-start gap-3">
               <div className="w-1 h-1 rounded-full bg-red-500 mt-2 flex-shrink-0" />
-              <p className="text-sm text-red-200/80">You are responsible for any external API costs or data changes.</p>
+              <p className="text-xs md:text-sm text-red-200/80">You are responsible for any external API costs or data changes.</p>
             </div>
             <div className="flex items-start gap-3">
               <div className="w-1 h-1 rounded-full bg-red-500 mt-2 flex-shrink-0" />
-              <p className="text-sm text-red-200/80">Ensure you have revoked or limited any production secrets.</p>
+              <p className="text-xs md:text-sm text-red-200/80">Ensure you have revoked or limited any production secrets.</p>
             </div>
           </div>
 
@@ -81,7 +81,7 @@ export function AcceptanceModal({ isOpen, onClose, onAccept }: AcceptanceModalPr
                 aria-label="Type I ACCEPT RESPONSIBILITY to confirm"
                 aria-required="true"
                 className={cn(
-                  "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-center font-black tracking-widest uppercase transition-all focus:outline-none focus:ring-2",
+                  "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-center font-black tracking-widest uppercase transition-all focus:outline-none focus:ring-2 text-sm",
                   isCorrect ? "focus:ring-green-500 border-green-500/50 text-green-500" : "focus:ring-primary border-white/10"
                 )}
               />

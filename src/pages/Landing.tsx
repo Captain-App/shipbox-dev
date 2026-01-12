@@ -25,27 +25,27 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-40 pb-20 overflow-hidden">
+      <section className="relative pt-32 md:pt-40 pb-20 overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <div className="max-w-3xl space-y-8">
+          <div className="max-w-3xl space-y-6 md:space-y-8">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.2em] animate-in fade-in slide-in-from-bottom-4 duration-700">
               <Zap className="w-3 h-3" />
               The Infrastructure for AI Agents
             </div>
-            <h1 className="text-7xl md:text-8xl font-black uppercase tracking-tighter leading-[0.9] animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-100">
+            <h1 className="text-5xl sm:text-7xl md:text-8xl font-black uppercase tracking-tighter leading-[0.9] animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-100">
               Your Agents.<br />
               <span className="text-primary">Their Own Box.</span>
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
               Shipbox provides secure, isolated, and persistent Cloudflare sandboxes for AI agents. 
               Give your agents a real environment to code, test, and deploy—without the infra overhead.
             </p>
-            <div className="flex flex-wrap gap-4 pt-4 animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-300">
-              <Button size="lg" onClick={onGetStarted} className="h-16 px-10 text-lg gap-3">
+            <div className="flex flex-col sm:flex-row gap-4 pt-4 animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-300">
+              <Button size="lg" onClick={onGetStarted} className="h-16 px-10 text-lg gap-3 w-full sm:w-auto">
                 Get Started
                 <ArrowRight className="w-6 h-6" />
               </Button>
-              <Button variant="outline" size="lg" className="h-16 px-10 text-lg border-white/10 hover:bg-white/5" onClick={() => window.open('https://docs.shipbox.dev')}>
+              <Button variant="outline" size="lg" className="h-16 px-10 text-lg border-white/10 hover:bg-white/5 w-full sm:w-auto" onClick={() => window.open('https://docs.shipbox.dev')}>
                 Read Documentation
               </Button>
             </div>

@@ -79,9 +79,9 @@ const colors = {
 export function ActivityTimeline() {
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h2 className="text-xl font-black uppercase tracking-tight">Recent Activity</h2>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {['All', 'Commands', 'Network', 'Deployments'].map((filter) => (
             <button
               key={filter}
@@ -99,31 +99,31 @@ export function ActivityTimeline() {
           return (
             <div 
               key={event.id}
-              className="group relative flex gap-4 p-4 rounded-2xl border border-white/5 bg-white/5 hover:bg-white/10 transition-all cursor-pointer"
+              className="group relative flex gap-3 md:gap-4 p-4 rounded-2xl border border-white/5 bg-white/5 hover:bg-white/10 transition-all cursor-pointer"
             >
               {/* Connector line */}
               {i !== mockEvents.length - 1 && (
-                <div className="absolute left-[34px] top-[56px] w-[1px] h-[calc(100%-16px)] bg-white/5 group-hover:bg-white/10" />
+                <div className="absolute left-[34px] top-[56px] w-[1px] h-[calc(100%-16px)] bg-white/5 group-hover:bg-white/10 hidden xs:block" />
               )}
 
               <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0", colors[event.type])}>
                 <Icon className="w-5 h-5" />
               </div>
 
-              <div className="flex-1 space-y-1">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold">{event.title}</h3>
+              <div className="flex-1 min-w-0 space-y-1">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                  <h3 className="text-sm font-bold truncate">{event.title}</h3>
                   <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
-                    <Clock className="w-3 h-3" />
+                    <Clock className="w-3 h-3 shrink-0" />
                     {event.timestamp}
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground font-mono bg-black/20 p-2 rounded-lg mt-2">
+                <p className="text-sm text-muted-foreground font-mono bg-black/20 p-2 rounded-lg mt-2 truncate">
                   {event.detail}
                 </p>
               </div>
 
-              <div className="flex items-center pl-2">
+              <div className="flex items-center pl-1 md:pl-2 shrink-0">
                 <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-white/40" />
               </div>
             </div>
