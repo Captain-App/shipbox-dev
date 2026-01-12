@@ -23,7 +23,9 @@ export function useRealtime(sessionId: string | null, token: string | null) {
     // Use engine URL for WebSockets
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const host = "engine.shipbox.dev"; // Hardcoded for now as per plan
-    const url = `${protocol}//${host}/realtime?sessionId=${sessionId}&token=${token}${lastSeq >= 0 ? `&lastSeq=${lastSeq}` : ""}`;
+    const url = `${protocol}//${host}/realtime?sessionId=${sessionId}&token=${token}${
+      lastSeq >= 0 ? `&lastSeq=${lastSeq}` : ""
+    }`;
 
     const ws = new WebSocket(url);
     socketRef.current = ws;
@@ -40,6 +42,10 @@ export function useRealtime(sessionId: string | null, token: string | null) {
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data) as RealtimeEvent;
+        if (data.type === "ping") {
+          ws.send("pong");
+          return;
+        }
         setEvents((prev) => {
           // Avoid duplicates on replay
           if (prev.some((e) => e.seq === data.seq)) return prev;
@@ -56,10 +62,12 @@ export function useRealtime(sessionId: string | null, token: string | null) {
       console.log("WebSocket disconnected");
       setIsConnected(false);
       socketRef.current = null;
-      
+
       // Attempt reconnect after 3 seconds
       if (!reconnectTimeoutRef.current) {
-        reconnectTimeoutRef.current = window.setTimeout(connect, 3000);
+        reconnectTimeoutRef.current = window.setTimeout(() => {
+          connect();
+        }, 3000);
       }
     };
 
@@ -67,7 +75,7 @@ export function useRealtime(sessionId: string | null, token: string | null) {
       console.error("WebSocket error:", error);
       ws.close();
     };
-  }, [sessionId, lastSeq]);
+  }, [sessionId, lastSeq, token]);
 
   useEffect(() => {
     connect();
