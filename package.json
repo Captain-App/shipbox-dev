@@ -5,7 +5,8 @@
   "type": "module",
   "workspaces": [
     "workers/*",
-    "packages/*"
+    "packages/*",
+    "sandbox-mcp"
   ],
   "scripts": {
     "dev": "vite",

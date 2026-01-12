@@ -1,4 +1,4 @@
-import { Context, Effect, Layer, Logger } from "effect";
+import { Context, Effect, Layer, Logger, FiberRef, FiberRefs } from "effect";
 
 /**
  * Request context carrying identifiers for correlation
@@ -9,7 +9,7 @@ export interface RequestContext {
   readonly sessionId?: string;
 }
 
-export const RequestContext = Context.Tag<RequestContext>();
+export const RequestContext = Context.GenericTag<RequestContext>("@shipbox/shared/RequestContext");
 
 /**
  * Structured log entry format
@@ -28,7 +28,8 @@ export interface LogEntry {
  * Effect Logger implementation that outputs structured JSON
  */
 export const structuredLogger = Logger.make<unknown, void>((options) => {
-  const context = options.context;
+  // Get the current context from FiberRefs
+  const context = FiberRefs.getOrDefault(options.context, FiberRef.currentContext);
   const requestContext = Context.getOption(context, RequestContext);
 
   const logEntry: LogEntry = {
@@ -38,16 +39,14 @@ export const structuredLogger = Logger.make<unknown, void>((options) => {
   };
 
   if (requestContext._tag === "Some") {
-    logEntry.requestId = requestContext.value.requestId;
-    logEntry.userId = requestContext.value.userId;
-    logEntry.sessionId = requestContext.value.sessionId;
+    const ctx = requestContext.value as RequestContext;
+    logEntry.requestId = ctx.requestId;
+    logEntry.userId = ctx.userId;
+    logEntry.sessionId = ctx.sessionId;
   }
 
-  // Include any other annotations/meta if available
-  // In Effect 3.x, we can use options.annotations if needed, 
-  // but for now, we'll stick to the core RequestContext.
-
-  globalThis.console.log(JSON.stringify(logEntry));
+  // Use console directly (globalThis.console doesn't work in all envs)
+  console.log(JSON.stringify(logEntry));
 });
 
 /**
@@ -62,5 +61,5 @@ export const withRequestContext = (
   requestId: string,
   userId?: string,
   sessionId?: string
-) => <R, E, A>(effect: Effect.Effect<R, E, A>) =>
+) => <A, E, R>(effect: Effect.Effect<A, E, R>) =>
   Effect.provideService(effect, RequestContext, { requestId, userId, sessionId });
