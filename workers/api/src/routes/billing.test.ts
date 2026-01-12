@@ -111,6 +111,10 @@ describe("Billing Routes", () => {
       type: "checkout.session.completed",
       data: {
         object: {
+          customer: "cus_123",
+          customer_details: {
+            email: "test@example.com",
+          },
           metadata: {
             userId: "user-123",
             amountCredits: "5000",
@@ -138,6 +142,6 @@ describe("Billing Routes", () => {
       env
     );
     const balance = await balanceRes.json() as any;
-    expect(balance.balanceCredits).toBe(6000);
+    expect(Number(balance.balanceCredits)).toBe(6000);
   });
 });

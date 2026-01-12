@@ -33,11 +33,15 @@ describe("Sessions Routes", () => {
       SUPABASE_URL: "https://supabase",
       SUPABASE_ANON_KEY: "anon-key",
     };
+
+    // Pre-populate user balance so quota check passes
+    mockD1.prepare("INSERT INTO user_balances (user_id, balance_credits, updated_at) VALUES (?, ?, ?)")
+      .bind("user-123", 1000, Date.now()).run();
     
     // Mock global fetch for Supabase auth
     vi.stubGlobal("fetch", async (url: string) => {
       if (url.endsWith("/auth/v1/user")) {
-        return new Response(JSON.stringify({ id: "user-123" }), { status: 200 });
+        return new Response(JSON.stringify({ id: "user-123", email: "test@example.com" }), { status: 200 });
       }
       return new Response("Not found", { status: 404 });
     });

@@ -74,8 +74,8 @@ export const sessionsRoutes = new Hono<{ Bindings: Bindings; Variables: Variable
     // Check quota and balance first
     const quotaResult = await Effect.runPromiseExit(
       Effect.all([
-        Effect.serviceWithEffect(QuotaService, (s) => s.checkSandboxQuota(user.id)),
-        Effect.serviceWithEffect(QuotaService, (s) => s.checkBalance(user.id))
+        Effect.flatMap(QuotaService, (s) => s.checkSandboxQuota(user.id)),
+        Effect.flatMap(QuotaService, (s) => s.checkBalance(user.id))
       ]).pipe(Effect.provide(quotaServiceLayer))
     );
     

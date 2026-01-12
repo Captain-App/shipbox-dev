@@ -58,6 +58,10 @@ describe("StripeService", () => {
       type: "checkout.session.completed",
       data: {
         object: {
+          customer: "cus_123",
+          customer_details: {
+            email: "test@example.com",
+          },
           metadata: {
             userId: "user-123",
             amountCredits: "5000",
@@ -75,6 +79,8 @@ describe("StripeService", () => {
     
     expect(result.userId).toBe("user-123");
     expect(result.amountCredits).toBe(5000);
+    expect(result.customerId).toBe("cus_123");
+    expect(result.email).toBe("test@example.com");
   });
 
   it("should handle unhandled webhook event type gracefully", async () => {
@@ -91,5 +97,7 @@ describe("StripeService", () => {
     const result = await Effect.runPromise(Effect.provide(program, layer));
     expect(result.userId).toBe("");
     expect(result.amountCredits).toBe(0);
+    expect(result.customerId).toBe("");
+    expect(result.email).toBe("");
   });
 });
