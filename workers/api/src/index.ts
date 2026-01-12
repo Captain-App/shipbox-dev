@@ -236,6 +236,9 @@ app.all("/session/:sessionId/*", async (c) => {
   return c.env.SANDBOX_MCP.fetch(newRequest);
 });
 
+// Export unwrapped app for testing
+export { app };
+
 // Export app type for Hono RPC
 export type AppType = typeof app;
 

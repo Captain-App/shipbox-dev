@@ -1,5 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import app from "../index";
+
+// Mock cloudflare-specific imports before importing index
+vi.mock("@microlabs/otel-cf-workers", () => ({
+  instrumentation: (handler: any) => ({
+    fetch: (request: Request, env: any, ctx: any) => handler.fetch(request, env, ctx)
+  }),
+}));
+
+vi.mock("@sentry/cloudflare", () => ({
+  withSentry: (config: any, handler: any) => handler,
+  setTag: vi.fn(),
+  setContext: vi.fn(),
+  setUser: vi.fn(),
+  addBreadcrumb: vi.fn(),
+}));
+
+import { app } from "../index";
 import { createMockD1 } from "../test-utils/d1-mock";
 
 // Mock Stripe SDK
