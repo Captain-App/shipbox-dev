@@ -73,7 +73,7 @@ export function BillingDashboard() {
           <p className="text-muted-foreground">Credits-first metering. No surprises, no runaway costs.</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" size="sm" onClick={handleManageBilling} className="gap-2">
+          <Button variant="secondary" size="sm" onClick={handleManageBilling} className="gap-2">
             Manage Payments
           </Button>
           <Button variant="primary" size="sm" onClick={handleTopUp} className="gap-2">
