@@ -6,7 +6,13 @@ export default defineConfig({
 	site: 'https://docs.shipbox.dev',
 	integrations: [
 		starlight({
-			title: 'Shipbox Documentation',
+			title: 'Shipbox',
+			logo: {
+				src: './src/assets/favicon.svg',
+			},
+			customCss: [
+				'./src/styles/custom.css',
+			],
 			social: {
 				github: 'https://github.com/crew/shipbox-dev',
 			},
@@ -14,24 +20,24 @@ export default defineConfig({
 				{
 					label: 'Getting Started',
 					items: [
-						{ label: 'Introduction', link: '/' },
-						{ label: 'Quickstart', link: '/guides/quickstart' },
+						{ label: 'Shipbox Overview', link: '/' },
+						{ label: 'Quickstart Guide', link: '/guides/quickstart', badge: { text: 'New', variant: 'success' } },
 					],
 				},
 				{
-					label: 'Features',
+					label: 'Core Concepts',
+					items: [
+						{ label: 'Agent Sandboxes', link: '/guides/creating-sandbox' },
+						{ label: 'Autonomous Mode', link: '/guides/autonomous-mode' },
+					],
+				},
+				{
+					label: 'Platform Features',
 					items: [
 						{ label: 'Dashboard', link: '/features/dashboard' },
 						{ label: 'Workspace', link: '/features/workspace' },
-						{ label: 'Settings', link: '/features/settings' },
-						{ label: 'Billing', link: '/features/billing' },
-					],
-				},
-				{
-					label: 'Guides',
-					items: [
-						{ label: 'Creating Sandboxes', link: '/guides/creating-sandbox' },
-						{ label: 'Autonomous Mode', link: '/guides/autonomous-mode' },
+						{ label: 'Settings & Secrets', link: '/features/settings' },
+						{ label: 'Billing & Credits', link: '/features/billing' },
 					],
 				},
 				{

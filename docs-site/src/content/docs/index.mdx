@@ -3,34 +3,46 @@ title: Shipbox Documentation
 description: Welcome to the Shipbox documentation. Learn how to manage your agent environments.
 template: splash
 hero:
-  tagline: Static, persistent, and autonomous agent boxes.
+  tagline: Deploy persistent, autonomous agent environments in seconds. Built for the next generation of AI infrastructure.
   image:
     file: ../../../public/favicon.svg
   actions:
     - text: Get Started
       link: /guides/quickstart/
-      icon: right-arrow
+      icon: rocket
       variant: primary
-    - text: View on GitHub
+    - text: GitHub
       link: https://github.com/crew/shipbox-dev
-      icon: external
+      icon: github
+      variant: secondary
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
+import { Card, CardGrid, Badge } from '@astrojs/starlight/components';
 
-## Next steps
+## The Future of Agentic Infrastructure
 
 <CardGrid stagger>
 	<Card title="Quickstart" icon="rocket">
-		Get up and running with your first sandbox in minutes.
+		Get up and running with your first sandbox in minutes. <Badge text="Fast" variant="success" />
 	</Card>
 	<Card title="Dashboard" icon="setting">
-		Learn how to monitor your agent activity and credits.
+		Monitor agent activity, manage secrets, and track credit usage in real-time.
 	</Card>
-	<Card title="Workspace" icon="open-book">
-		Explore the agent workspace and interactive terminal.
+	<Card title="Autonomous Mode" icon="forward-slash">
+		Enable agents to operate independently with persistent workspace state. <Badge text="Pro" variant="note" />
 	</Card>
-	<Card title="API Reference" icon="document">
-		Detailed documentation for the Shipbox API.
+	<Card title="API First" icon="document">
+		Seamlessly integrate Shipbox into your own applications with our robust API.
+	</Card>
+</CardGrid>
+
+## Next Steps
+
+<CardGrid>
+	<Card title="Creating Sandboxes" icon="add-document">
+		Learn about the different sandbox configurations and how to deploy them.
+	</Card>
+	<Card title="Billing & Credits" icon="list-format">
+		Understand how our consumption-based billing works.
 	</Card>
 </CardGrid>
