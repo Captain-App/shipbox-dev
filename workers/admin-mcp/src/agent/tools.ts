@@ -65,6 +65,18 @@ export type AdminGetSessionTracesInput = z.infer<typeof adminGetSessionTracesSch
 export const adminGetAuthTokenSchema = z.object({});
 export type AdminGetAuthTokenInput = z.infer<typeof adminGetAuthTokenSchema>;
 
+export const adminCreateSessionSchema = z.object({
+  userId: z.string().optional(),
+});
+export type AdminCreateSessionInput = z.infer<typeof adminCreateSessionSchema>;
+
+export const adminCallEngineMcpSchema = z.object({
+  sessionId: z.string(),
+  method: z.string(),
+  params: z.any().optional(),
+});
+export type AdminCallEngineMcpInput = z.infer<typeof adminCallEngineMcpSchema>;
+
 /**
  * MCP tool response type
  */

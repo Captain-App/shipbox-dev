@@ -22,6 +22,8 @@ import {
   adminGetTraceSchema,
   adminGetSessionTracesSchema,
   adminGetAuthTokenSchema,
+  adminCreateSessionSchema,
+  adminCallEngineMcpSchema,
   formatToolResponse,
   formatErrorResponse,
   type AdminGetStatsInput,
@@ -36,7 +38,9 @@ import {
   type AdminListRecentTracesInput,
   type AdminGetTraceInput,
   type AdminGetSessionTracesInput,
-  type AdminGetAuthTokenInput
+  type AdminGetAuthTokenInput,
+  type AdminCreateSessionInput,
+  type AdminCallEngineMcpInput
 } from "./tools";
 import { SentryService, makeSentryServiceLayer } from "../services/sentry";
 import { Env } from "../types";
@@ -69,6 +73,8 @@ export class AdminMcpAgent extends McpAgent<Env, AdminState> {
     this.registerTraceTool();
     this.registerSessionTracesTool();
     this.registerAuthTokenTool();
+    this.registerCreateSessionTool();
+    this.registerCallEngineMcpTool();
 
     this.setState({ initialized: true });
   }
@@ -330,7 +336,7 @@ export class AdminMcpAgent extends McpAgent<Env, AdminState> {
       },
       async (params: AdminGetSessionMetadataInput) => {
         try {
-          const res = await this.env.SANDBOX_MCP.fetch("http://sandbox/internal/sessions/${params.sessionId}", {
+          const res = await this.env.SANDBOX_MCP.fetch(`http://sandbox/internal/sessions/${params.sessionId}`, {
             headers: { "X-Request-Id": crypto.randomUUID() }
           });
           if (!res.ok) throw new Error(`Engine API error: ${res.status} ${await res.text()}`);
@@ -425,6 +431,75 @@ export class AdminMcpAgent extends McpAgent<Env, AdminState> {
         } catch (error) {
           return formatErrorResponse({
             code: "AUTH_TOKEN_ERROR",
+            message: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
+    );
+  }
+
+  private registerCreateSessionTool(): void {
+    this.server.registerTool(
+      "admin_create_session",
+      {
+        description: "Create a new sandbox session.",
+        inputSchema: adminCreateSessionSchema,
+      },
+      async (params: AdminCreateSessionInput) => {
+        try {
+          const res = await this.env.SANDBOX_MCP.fetch("http://sandbox/internal/sessions", {
+            method: "POST",
+            body: JSON.stringify({ userId: params.userId || "admin" }),
+            headers: {
+              "Content-Type": "application/json",
+              "X-Request-Id": crypto.randomUUID(),
+            }
+          });
+          if (!res.ok) throw new Error(`Engine API error: ${res.status} ${await res.text()}`);
+          const data = await res.json();
+          return formatToolResponse(data);
+        } catch (error) {
+          return formatErrorResponse({
+            code: "CREATE_SESSION_ERROR",
+            message: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
+    );
+  }
+
+  private registerCallEngineMcpTool(): void {
+    this.server.registerTool(
+      "admin_call_engine_mcp",
+      {
+        description: "Call an MCP tool on the engine for a specific session.",
+        inputSchema: adminCallEngineMcpSchema,
+      },
+      async (params: AdminCallEngineMcpInput) => {
+        try {
+          const res = await this.env.SANDBOX_MCP.fetch("http://sandbox/mcp", {
+            method: "POST",
+            body: JSON.stringify({
+              jsonrpc: "2.0",
+              id: crypto.randomUUID(),
+              method: params.method,
+              params: {
+                ...params.params,
+                sessionId: params.sessionId,
+              },
+            }),
+            headers: {
+              "Content-Type": "application/json",
+              "Mcp-Session-Id": params.sessionId,
+              "X-Request-Id": crypto.randomUUID(),
+            }
+          });
+          if (!res.ok) throw new Error(`Engine MCP error: ${res.status} ${await res.text()}`);
+          const data = await res.json();
+          return formatToolResponse(data);
+        } catch (error) {
+          return formatErrorResponse({
+            code: "ENGINE_MCP_ERROR",
             message: error instanceof Error ? error.message : String(error),
           });
         }
