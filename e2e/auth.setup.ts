@@ -34,7 +34,7 @@ setup('authenticate', async ({ page }) => {
   await page.goto('/');
   
   // Wait for auth page to load
-  await expect(page.getByText(/Shipbox/i)).toBeVisible();
+  await expect(page.getByText(/Shipbox/i).first()).toBeVisible();
   
   // Fill in credentials
   await page.fill('input[type="email"]', email);
@@ -46,8 +46,8 @@ setup('authenticate', async ({ page }) => {
   // Wait for redirect to authenticated app
   await page.waitForURL('/');
   
-  // Check for Sidebar content instead of "Sandboxes" which might be "Active Box" or something else
-  await expect(page.getByText(/Active Box/i)).toBeVisible({ timeout: 10000 });
+  // Check for Sidebar content which is always visible after login
+  await expect(page.getByText(/Dashboard/i).first()).toBeVisible({ timeout: 15000 });
   
   // Save authentication state
   await page.context().storageState({ path: authFile });

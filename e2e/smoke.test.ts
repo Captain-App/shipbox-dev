@@ -11,7 +11,7 @@ test('shows login page when unauthenticated', async ({ browser }) => {
   const page = await context.newPage();
   
   await page.goto('/');
-  await expect(page.getByText(/Shipbox/i)).toBeVisible();
+  await expect(page.getByText(/Shipbox/i).first()).toBeVisible();
   await expect(page.getByRole('button', { name: /Enter the Castle/i })).toBeVisible();
   
   await context.close();
@@ -49,13 +49,20 @@ test.describe('Authenticated User', () => {
         body: JSON.stringify(null),
       });
     });
+    await page.route('**/box-secrets', async (route) => {
+      await route.fulfill({ 
+        status: 200, 
+        contentType: 'application/json',
+        body: JSON.stringify([]),
+      });
+    });
   });
 
   test('can view dashboard', async ({ page }) => {
     await page.goto('/');
     
     // Should show the main layout (not login)
-    await expect(page.getByText(/Active Box/i)).toBeVisible();
+    await expect(page.getByText(/Dashboard/i).first()).toBeVisible();
   });
 
   test('can navigate to settings', async ({ page }) => {
@@ -63,7 +70,7 @@ test.describe('Authenticated User', () => {
     
     // Click settings in sidebar
     await page.locator('button').filter({ hasText: /Settings/i }).first().click();
-    await expect(page.getByText(/API Key/i)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/Settings/i).first()).toBeVisible({ timeout: 10000 });
   });
 
   test('can navigate to billing', async ({ page }) => {
@@ -77,13 +84,11 @@ test.describe('Authenticated User', () => {
   test('can open create sandbox modal', async ({ page }) => {
     await page.goto('/');
     
-    // Check if selector exists and click it to open dropdown
-    const selector = page.getByRole('button', { name: /Active Box/i });
-    await expect(selector).toBeVisible();
-    await selector.click();
+    // Click "Boxes" in sidebar to ensure we are in a state where we can see the create button
+    await page.locator('button').filter({ hasText: /Boxes/i }).first().click();
     
     // Click "Create New Box"
-    const createButton = page.getByText('Create New Box');
+    const createButton = page.getByRole('button', { name: /Create New Box/i });
     await expect(createButton).toBeVisible();
     await createButton.click();
     

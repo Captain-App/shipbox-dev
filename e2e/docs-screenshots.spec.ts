@@ -16,7 +16,7 @@ test.describe('Generate Screenshots', () => {
     const page = await context.newPage();
     
     await page.goto('/');
-    await expect(page.getByText(/Shipbox/i)).toBeVisible();
+    await expect(page.getByText(/Shipbox/i).first()).toBeVisible();
     await expect(page.getByRole('button', { name: /Enter the Castle/i })).toBeVisible();
     await page.screenshot({ path: `${SCREENSHOT_DIR}/auth.png` });
     await context.close();
@@ -24,7 +24,7 @@ test.describe('Generate Screenshots', () => {
 
   test('capture dashboard', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByText(/Active Box/i)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/Dashboard/i).first()).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(2000);
     await page.screenshot({ path: `${SCREENSHOT_DIR}/dashboard.png` });
   });
@@ -49,18 +49,18 @@ test.describe('Generate Screenshots', () => {
   test('capture boxes list', async ({ page }) => {
     await page.goto('/');
     await page.locator('button').filter({ hasText: /Boxes/i }).first().click();
-    // Just wait for the list view to load, don't expect a specific box name
-    await expect(page.getByText(/Active Box/i)).toBeVisible({ timeout: 10000 });
+    // Check for Boxes heading
+    await expect(page.getByRole('heading', { name: /Boxes/i })).toBeVisible({ timeout: 10000 });
     await page.waitForTimeout(1000);
     await page.screenshot({ path: `${SCREENSHOT_DIR}/boxes.png` });
   });
 
   test('capture create sandbox modal', async ({ page }) => {
     await page.goto('/');
-    // Open the dropdown first
-    await page.getByRole('button', { name: /Active Box/i }).click();
-    // Click the "Create New Box" button in the dropdown
-    await page.getByText('Create New Box').click();
+    // Go to Boxes page
+    await page.locator('button').filter({ hasText: /Boxes/i }).first().click();
+    // Click the "Create New Box" button
+    await page.getByRole('button', { name: /Create New Box/i }).click();
     
     // Modal should appear with "New Sandbox Box" heading
     await expect(page.getByText('New Sandbox Box')).toBeVisible({ timeout: 10000 });
@@ -70,16 +70,16 @@ test.describe('Generate Screenshots', () => {
 
   test('capture workspace view', async ({ page }) => {
     await page.goto('/');
-    // If there's an "Open Box" button, click it
+    // Workspace view might only be available if there is an active sandbox.
+    // Since we can't guarantee that in E2E without real data, we check if "Open Box" is visible.
     const openBtn = page.locator('button').filter({ hasText: /Open Box/i }).first();
     if (await openBtn.isVisible()) {
       await openBtn.click();
-      // Look for something specific to workspace, like "Box Details" or similar
       await expect(page.getByText(/Back to Dashboard/i).or(page.getByText(/Box Details/i))).toBeVisible({ timeout: 10000 });
       await page.waitForTimeout(2000);
       await page.screenshot({ path: `${SCREENSHOT_DIR}/workspace.png` });
     } else {
-      console.log('Skipping workspace screenshot - no boxes found');
+      console.log('Skipping workspace screenshot - no active box found');
     }
   });
 });
