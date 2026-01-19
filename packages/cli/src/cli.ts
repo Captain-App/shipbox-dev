@@ -6,6 +6,7 @@ import { getCommand } from "./commands/get.js";
 import { configCommand } from "./commands/config.js";
 import { loginCommand } from "./commands/login.js";
 import { connectCommand } from "./commands/connect.js";
+import { apiKeyCommand } from "./commands/api-key.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -28,5 +29,6 @@ program.addCommand(listCommand);
 program.addCommand(getCommand);
 program.addCommand(configCommand);
 program.addCommand(connectCommand);
+program.addCommand(apiKeyCommand);
 
 program.parse();

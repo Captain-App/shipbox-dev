@@ -117,7 +117,8 @@ const authMiddleware = async (c: any, next: any) => {
   }
 
   // Otherwise validate with Supabase
-  const res = await fetch(`${c.env.SUPABASE_URL}/auth/v1/user`, {
+  const supabaseUrl = `${c.env.SUPABASE_URL}/auth/v1/user`;
+  const res = await fetch(supabaseUrl, {
     headers: {
       Authorization: `Bearer ${token}`,
       apikey: c.env.SUPABASE_ANON_KEY,
@@ -125,7 +126,18 @@ const authMiddleware = async (c: any, next: any) => {
   });
 
   if (!res.ok) {
-    return c.json({ error: "Unauthorized", details: "Invalid Supabase token" }, 401);
+    const errorData = await res.json().catch(() => ({}));
+    console.error(
+      `[API Auth] Supabase validation failed at ${supabaseUrl}: ${res.status} - ${JSON.stringify(errorData)}`
+    );
+    return c.json(
+      {
+        error: "Unauthorized",
+        details: "Invalid Supabase token",
+        supabaseError: errorData,
+      },
+      401
+    );
   }
 
   const user = (await res.json()) as { id: string; email: string };
