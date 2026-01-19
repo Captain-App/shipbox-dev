@@ -135,4 +135,32 @@ describe("Settings Routes", () => {
     const body = (await statusRes.json()) as any;
     expect(body.anthropicHint).toBeNull();
   });
+
+  it("POST /settings/cli-api-key should create Shipbox API key for CLI", async () => {
+    const res = await app.fetch(
+      new Request("http://localhost/settings/cli-api-key", {
+        method: "POST",
+        headers: authHeaders,
+      }),
+      env,
+    );
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as any;
+    expect(body.key).toBeDefined();
+    expect(body.key).toMatch(/^sb_/);
+    expect(body.name).toBeDefined();
+    expect(body.hint).toBeDefined();
+  });
+
+  it("POST /settings/cli-api-key should require authentication", async () => {
+    const res = await app.fetch(
+      new Request("http://localhost/settings/cli-api-key", {
+        method: "POST",
+      }),
+      env,
+    );
+
+    expect(res.status).toBe(401);
+  });
 });

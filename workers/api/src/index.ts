@@ -13,10 +13,6 @@ import { GitHubService, makeGitHubServiceLayer } from "./services/github";
 import { ApiKeyService, makeApiKeyServiceLayer } from "./services/api-keys";
 import { makeBillingServiceLayer, BillingService } from "./services/billing";
 import { makeQuotaServiceLayer, QuotaService } from "./services/quota";
-import {
-  ShipboxApiKeyService,
-  makeShipboxApiKeyServiceLayer,
-} from "./services/shipbox-api-keys";
 import { Option } from "effect";
 import { loggingMiddleware } from "./middleware/logging";
 import {
@@ -26,6 +22,7 @@ import {
   captureEffectError,
 } from "@shipbox/shared";
 import { instrument } from "@microlabs/otel-cf-workers";
+import { createAuthMiddleware } from "./auth";
 
 export type Bindings = {
   DB: D1Database;
@@ -76,76 +73,7 @@ app.use("*", loggingMiddleware());
 app.use("*", cors());
 
 // Authentication Middleware
-const authMiddleware = async (c: any, next: any) => {
-  // Skip auth for internal, admin, and webhooks
-  if (
-    c.req.path.startsWith("/internal/") ||
-    c.req.path.startsWith("/admin/") ||
-    c.req.path === "/github/webhook" ||
-    c.req.path === "/billing/webhook"
-  ) {
-    await next();
-    return;
-  }
-
-  const authHeader = c.req.header("Authorization");
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return c.json({ error: "Unauthorized" }, 401);
-  }
-
-  const token = authHeader.split(" ")[1];
-
-  // Check if it's a Shipbox API key
-  if (token.startsWith("sb_")) {
-    const result = await Effect.runPromiseExit(
-      Effect.gen(function* () {
-        const service = yield* ShipboxApiKeyService;
-        return yield* service.validateKey(token);
-      }).pipe(Effect.provide(makeShipboxApiKeyServiceLayer(c.env.DB))),
-    );
-
-    if (Exit.isSuccess(result)) {
-      c.set("user", { id: result.value, email: `user-${result.value}` });
-      await next();
-      return;
-    }
-
-    return c.json(
-      { error: "Unauthorized", details: "Invalid Shipbox API key" },
-      401,
-    );
-  }
-
-  // Otherwise validate with Supabase
-  const supabaseUrl = `${c.env.SUPABASE_URL}/auth/v1/user`;
-  const res = await fetch(supabaseUrl, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      apikey: c.env.SUPABASE_ANON_KEY,
-    },
-  });
-
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}));
-    console.error(
-      `[API Auth] Supabase validation failed at ${supabaseUrl}: ${res.status} - ${JSON.stringify(errorData)}`
-    );
-    return c.json(
-      {
-        error: "Unauthorized",
-        details: "Invalid Supabase token",
-        supabaseError: errorData,
-      },
-      401
-    );
-  }
-
-  const user = (await res.json()) as { id: string; email: string };
-  c.set("user", { id: user.id, email: user.email });
-  await next();
-};
-
-app.use("*", authMiddleware);
+app.use("*", createAuthMiddleware());
 
 // Rate Limiting Middleware
 app.use("*", async (c, next) => {

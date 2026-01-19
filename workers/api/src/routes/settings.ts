@@ -13,26 +13,8 @@ export const settingsRoutes = new Hono<{
 }>()
   // Exchange Supabase token for Shipbox API key (for CLI login)
   .post("/cli-api-key", async (c) => {
-    const authHeader = c.req.header("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return c.json({ error: "Unauthorized" }, 401);
-    }
-
-    const token = authHeader.split(" ")[1];
-
-    // Validate token with Supabase (don't check Shipbox keys yet)
-    const userRes = await fetch(`${c.env.SUPABASE_URL}/auth/v1/user`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        apikey: c.env.SUPABASE_ANON_KEY,
-      },
-    });
-
-    if (!userRes.ok) {
-      return c.json({ error: "Unauthorized", details: "Invalid Supabase token" }, 401);
-    }
-
-    const user = (await userRes.json()) as { id: string; email?: string };
+    // Get authenticated user from middleware context
+    const user = c.get("user");
 
     // Create a Shipbox API key for this user
     const shipboxLayer = makeShipboxApiKeyServiceLayer(c.env.DB);
