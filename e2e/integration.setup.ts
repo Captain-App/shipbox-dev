@@ -82,9 +82,9 @@ To run integration tests:
   await page.waitForLoadState("networkidle");
 
   // Look for balance indicator
-  const balanceElement = page.locator(
-    '[data-testid="balance"], [class*="balance"], text=/\\$[0-9]/i'
-  );
+  const balanceElement = page.locator('[data-testid="balance"]').or(
+    page.locator('[class*="balance"]')
+  ).or(page.getByText(/\$[0-9]/));
 
   if (await balanceElement.isVisible({ timeout: 10000 })) {
     const balanceText = await balanceElement.textContent();
