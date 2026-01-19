@@ -11,6 +11,46 @@ export const settingsRoutes = new Hono<{
   Bindings: Bindings;
   Variables: Variables;
 }>()
+  // Exchange Supabase token for Shipbox API key (for CLI login)
+  .post("/cli-api-key", async (c) => {
+    const authHeader = c.req.header("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    // Validate token with Supabase (don't check Shipbox keys yet)
+    const userRes = await fetch(`${c.env.SUPABASE_URL}/auth/v1/user`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        apikey: c.env.SUPABASE_ANON_KEY,
+      },
+    });
+
+    if (!userRes.ok) {
+      return c.json({ error: "Unauthorized", details: "Invalid Supabase token" }, 401);
+    }
+
+    const user = (await userRes.json()) as { id: string; email?: string };
+
+    // Create a Shipbox API key for this user
+    const shipboxLayer = makeShipboxApiKeyServiceLayer(c.env.DB);
+    const result = await Effect.runPromiseExit(
+      Effect.gen(function* () {
+        const service = yield* ShipboxApiKeyService;
+        const keyName = `CLI Key - ${new Date().toISOString().slice(0, 10)}`;
+        return yield* service.createKey(user.id, keyName);
+      }).pipe(Effect.provide(shipboxLayer)),
+    );
+
+    if (Exit.isFailure(result)) {
+      console.error(`Failed to create CLI API key for ${user.email || user.id}`);
+      return c.json({ error: "Failed to create API key" }, 500);
+    }
+
+    return c.json(result.value);
+  })
   .get("/api-keys", async (c) => {
     const user = c.get("user");
     const layer = makeApiKeyServiceLayer(c.env.DB, c.env.PROXY_JWT_SECRET);

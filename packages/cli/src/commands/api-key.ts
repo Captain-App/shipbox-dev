@@ -35,6 +35,11 @@ export const apiKeyCommand = new Command('api-key')
 
           if (!result.ok) {
             const error = await result.json().catch(() => ({}));
+            if (result.status === 401) {
+              throw new Error(
+                'Authentication failed. Please run `shipbox login` again.'
+              );
+            }
             throw new Error(
               `Failed to create API key: ${error.error || result.statusText}`
             );

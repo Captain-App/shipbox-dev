@@ -2,27 +2,60 @@ import { Command } from "commander";
 import http from "http";
 import { exec } from "child_process";
 import chalk from "chalk";
-import { configStore } from "../config.js";
+import { configStore, getBaseUrl } from "../config.js";
 
 export const loginCommand = new Command("login")
   .description("Log in to shipbox.dev via browser")
   .action(async () => {
     const port = 49152 + Math.floor(Math.random() * 1000); // Random high port
-    const server = http.createServer((req, res) => {
-      const url = new URL(req.url || "", `http://localhost:${port}`);
-      const token = url.searchParams.get("token");
+    const baseUrl = getBaseUrl();
 
-      if (token) {
-        configStore.set("apiKey", token);
+    const server = http.createServer(async (req, res) => {
+      const url = new URL(req.url || "", `http://localhost:${port}`);
+      const supabaseToken = url.searchParams.get("token");
+
+      if (!supabaseToken) {
+        res.writeHead(400, { "Content-Type": "text/html" });
+        res.end("<h1>Login Failed</h1><p>No token found in request.</p>");
+        process.exit(1);
+        return;
+      }
+
+      try {
+        // Exchange Supabase token for Shipbox API key
+        const response = await fetch(`${baseUrl}/settings/cli-api-key`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${supabaseToken}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({}));
+          throw new Error(
+            `Failed to create API key: ${error.error || response.statusText}`
+          );
+        }
+
+        const { key } = (await response.json()) as { key: string };
+
+        // Store the Shipbox API key
+        configStore.set("apiKey", key);
+
         res.writeHead(200, { "Content-Type": "text/html" });
         res.end(
           "<h1>Login Successful</h1><p>You can close this window and return to the terminal.</p>",
         );
         console.log(chalk.green("\nSuccessfully logged in!"));
+        console.log(chalk.dim("API key saved to your local configuration"));
         process.exit(0);
-      } else {
-        res.writeHead(400, { "Content-Type": "text/html" });
-        res.end("<h1>Login Failed</h1><p>No token found in request.</p>");
+      } catch (error) {
+        res.writeHead(500, { "Content-Type": "text/html" });
+        res.end(
+          `<h1>Login Failed</h1><p>${(error as Error).message}</p>`
+        );
+        console.error(chalk.red(`\nLogin failed: ${(error as Error).message}`));
         process.exit(1);
       }
     });
