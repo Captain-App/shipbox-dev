@@ -1,9 +1,11 @@
+#!/usr/bin/env node
 import { Command } from "commander";
 import { runCommand } from "./commands/run.js";
 import { listCommand } from "./commands/list.js";
 import { getCommand } from "./commands/get.js";
 import { configCommand } from "./commands/config.js";
 import { loginCommand } from "./commands/login.js";
+import { connectCommand } from "./commands/connect.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -25,5 +27,6 @@ program.addCommand(runCommand);
 program.addCommand(listCommand);
 program.addCommand(getCommand);
 program.addCommand(configCommand);
+program.addCommand(connectCommand);
 
 program.parse();

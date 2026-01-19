@@ -8,6 +8,7 @@ export interface Session {
   repository?: string;
   branch?: string;
   createdAt: number;
+  realtimeToken?: string;
 }
 
 export interface CreateSessionParams {
@@ -82,6 +83,17 @@ export class ShipboxApi {
   async startSession(id: string): Promise<any> {
     return this.request(`/sessions/${id}/start`, {
       method: "POST",
+    });
+  }
+
+  async sendTask(
+    sessionId: string,
+    task: string,
+    title?: string,
+  ): Promise<{ runId: string; status: string }> {
+    return this.request(`/sessions/${sessionId}/task`, {
+      method: "POST",
+      body: JSON.stringify({ task, title }),
     });
   }
 }
