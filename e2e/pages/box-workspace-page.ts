@@ -52,12 +52,12 @@ export class BoxWorkspacePage {
 
   async expectChatInputVisible(): Promise<void> {
     await expect(
-      this.page.getByPlaceholderText(/Ask your agent|Type a message/i),
+      this.page.getByPlaceholder(/Ask your agent|Type a message/i),
     ).toBeVisible({ timeout: 10000 });
   }
 
   async sendMessage(message: string): Promise<void> {
-    const input = this.page.getByPlaceholderText(
+    const input = this.page.getByPlaceholder(
       /Ask your agent|Type a message/i,
     );
     await input.fill(message);

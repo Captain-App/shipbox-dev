@@ -4,6 +4,7 @@ import * as navigationSteps from "./navigation-steps";
 import * as boxSteps from "./box-steps";
 import * as billingSteps from "./billing-steps";
 import * as settingsSteps from "./settings-steps";
+import * as integrationSteps from "./integration-steps";
 
 /**
  * Initializes the step executor with all domain step implementations
@@ -42,6 +43,15 @@ export function createExecutor(): StepExecutor {
   executor.register(TestStep.ConnectGitHub, settingsSteps.connectGitHub);
   executor.register(TestStep.DisconnectGitHub, settingsSteps.disconnectGitHub);
   executor.register(TestStep.VerifySettings, settingsSteps.verifySettings);
+
+  // Integration test steps (real sandbox operations)
+  executor.register(TestStep.WaitForSandboxReady, integrationSteps.waitForSandboxReady);
+  executor.register(TestStep.SendAgentTask, integrationSteps.sendAgentTask);
+  executor.register(TestStep.WaitForTaskCompletion, integrationSteps.waitForTaskCompletion);
+  executor.register(TestStep.WaitForRealtimeEvent, integrationSteps.waitForRealtimeEvent);
+  executor.register(TestStep.VerifyFileCreated, integrationSteps.verifyFileCreated);
+  executor.register(TestStep.VerifyPlanContent, integrationSteps.verifyPlanContent);
+  executor.register(TestStep.CleanupTestBox, integrationSteps.cleanupTestBox);
 
   return executor;
 }

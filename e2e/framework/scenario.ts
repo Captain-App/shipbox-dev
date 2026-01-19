@@ -6,6 +6,10 @@
 export enum Precondition {
   LoggedIn = "loggedIn",
   HasSession = "hasSession",
+  // Integration test preconditions
+  HasCredits = "hasCredits",
+  HasApiKey = "hasApiKey",
+  HasGitHub = "hasGitHub",
 }
 
 export enum TestCategory {
@@ -16,6 +20,8 @@ export enum TestCategory {
   Settings = "settings",
   Smoke = "smoke",
   Onboarding = "onboarding",
+  // Integration test category - real sandbox tests
+  Integration = "integration",
 }
 
 export enum TestStep {
@@ -50,6 +56,15 @@ export enum TestStep {
   ConnectGitHub = "connectGitHub",
   DisconnectGitHub = "disconnectGitHub",
   VerifySettings = "verifySettings",
+
+  // Integration test steps - real sandbox operations
+  WaitForSandboxReady = "waitForSandboxReady",
+  SendAgentTask = "sendAgentTask",
+  WaitForTaskCompletion = "waitForTaskCompletion",
+  WaitForRealtimeEvent = "waitForRealtimeEvent",
+  VerifyFileCreated = "verifyFileCreated",
+  VerifyPlanContent = "verifyPlanContent",
+  CleanupTestBox = "cleanupTestBox",
 }
 
 /**
@@ -65,6 +80,13 @@ export class ScenarioState {
   apiKeySet = false;
   githubConnected = false;
 
+  // Integration test state
+  sandboxStatus?: "creating" | "active" | "stopped" | "error";
+  currentRunId?: string;
+  lastRealtimeEvent?: string;
+  createdFiles: string[] = [];
+  planContent?: string;
+
   reset(): void {
     this.isLoggedIn = false;
     this.currentUserEmail = undefined;
@@ -73,6 +95,12 @@ export class ScenarioState {
     this.balance = 0;
     this.apiKeySet = false;
     this.githubConnected = false;
+    // Reset integration state
+    this.sandboxStatus = undefined;
+    this.currentRunId = undefined;
+    this.lastRealtimeEvent = undefined;
+    this.createdFiles = [];
+    this.planContent = undefined;
   }
 }
 
@@ -124,6 +152,14 @@ export const stepDisplayNames: Record<TestStep, string> = {
   [TestStep.ConnectGitHub]: "Connect GitHub",
   [TestStep.DisconnectGitHub]: "Disconnect GitHub",
   [TestStep.VerifySettings]: "Verify Settings",
+  // Integration test steps
+  [TestStep.WaitForSandboxReady]: "Wait for Sandbox Ready",
+  [TestStep.SendAgentTask]: "Send Agent Task",
+  [TestStep.WaitForTaskCompletion]: "Wait for Task Completion",
+  [TestStep.WaitForRealtimeEvent]: "Wait for Realtime Event",
+  [TestStep.VerifyFileCreated]: "Verify File Created",
+  [TestStep.VerifyPlanContent]: "Verify Plan Content",
+  [TestStep.CleanupTestBox]: "Cleanup Test Box",
 };
 
 export const categoryDisplayNames: Record<TestCategory, string> = {
@@ -134,4 +170,5 @@ export const categoryDisplayNames: Record<TestCategory, string> = {
   [TestCategory.Settings]: "Settings",
   [TestCategory.Smoke]: "Smoke",
   [TestCategory.Onboarding]: "Onboarding",
+  [TestCategory.Integration]: "Integration",
 };
