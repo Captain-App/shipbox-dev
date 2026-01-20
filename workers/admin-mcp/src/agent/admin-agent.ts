@@ -80,6 +80,55 @@ export class AdminMcpAgent extends McpAgent<Env, AdminState> {
     ctx: ConnectionContext,
   ): Promise<void> {
     console.log(`[AdminMCP] onConnect: ${ctx.request.url}`);
+
+    // Check for Authorization header
+    const authHeader = ctx.request.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      console.log(`[AdminMCP] No Bearer token provided`);
+      throw new Error("Unauthorized: Bearer token required");
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    // Validate token with Supabase
+    const userRes = await fetch(`${this.env.SUPABASE_URL}/auth/v1/user`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        apikey: this.env.SUPABASE_ANON_KEY,
+      },
+    });
+
+    if (!userRes.ok) {
+      console.log(`[AdminMCP] Invalid token: ${userRes.status}`);
+      throw new Error("Unauthorized: Invalid token");
+    }
+
+    const user = (await userRes.json()) as { id: string; email?: string };
+    console.log(`[AdminMCP] User authenticated: ${user.email || user.id}`);
+
+    // Check admin role in user_roles table
+    const roleRes = await fetch(
+      `${this.env.SUPABASE_URL}/rest/v1/user_roles?user_id=eq.${user.id}&role=eq.admin&select=role`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          apikey: this.env.SUPABASE_ANON_KEY,
+        },
+      },
+    );
+
+    if (!roleRes.ok) {
+      console.log(`[AdminMCP] Failed to check admin role: ${roleRes.status}`);
+      throw new Error("Forbidden: Unable to verify admin role");
+    }
+
+    const roles = (await roleRes.json()) as any[];
+    if (roles.length === 0) {
+      console.log(`[AdminMCP] User ${user.email || user.id} is not an admin`);
+      throw new Error("Forbidden: Admin role required");
+    }
+
+    console.log(`[AdminMCP] Admin access granted for ${user.email || user.id}`);
     return super.onConnect(connection, ctx);
   }
 

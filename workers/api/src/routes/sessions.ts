@@ -298,9 +298,9 @@ export const sessionsRoutes = new Hono<{
     if (traceparent) forwardHeaders["traceparent"] = traceparent;
     if (baggage) forwardHeaders["baggage"] = baggage;
 
-    // Start task in sandbox-mcp
+    // Start task in sandbox-mcp (POST to session endpoint without /task suffix)
     const res = await c.env.SANDBOX_MCP.fetch(
-      `http://sandbox/internal/sessions/${id}/task`,
+      `http://sandbox/internal/sessions/${id}`,
       {
         method: "POST",
         body: JSON.stringify(body),

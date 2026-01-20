@@ -12,10 +12,9 @@ export interface Session {
 }
 
 export interface CreateSessionParams {
-  task: string;
+  name: string;
+  region: string;
   repository?: string;
-  branch?: string;
-  sessionId?: string;
 }
 
 export class ShipboxApi {
@@ -95,5 +94,21 @@ export class ShipboxApi {
       method: "POST",
       body: JSON.stringify({ task, title }),
     });
+  }
+
+  async getRun(
+    sessionId: string,
+    runId: string,
+  ): Promise<{
+    runId: string;
+    sessionId: string;
+    status: string;
+    output?: string;
+    error?: string;
+    task?: string;
+    startedAt?: number;
+    completedAt?: number;
+  }> {
+    return this.request(`/sessions/${sessionId}/runs/${runId}`);
   }
 }

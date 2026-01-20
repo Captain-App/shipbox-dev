@@ -47,5 +47,7 @@
     "SENTRY_ORG": "captain-app-lt",
     "SENTRY_PROJECT_API": "shipbox-api",
     "SENTRY_PROJECT_ENGINE": "shipbox-engine",
+    "SUPABASE_URL": "https://app.captainapp.co.uk",
+    "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqYmNqa2loeHNrdXd3ZmRxa2x0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDU2OTAsImV4cCI6MjA2NjI4MTY5MH0.V9e7XsuTlTOLqefOIedTqlBiTxUSn4O5FZSPWwAxiSI",
   },
 }

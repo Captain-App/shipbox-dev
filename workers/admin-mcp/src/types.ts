@@ -11,4 +11,7 @@ export interface Env {
   SENTRY_ORG: string;
   SENTRY_PROJECT_API: string;
   SENTRY_PROJECT_ENGINE: string;
+  // Auth
+  SUPABASE_URL: string;
+  SUPABASE_ANON_KEY: string;
 }

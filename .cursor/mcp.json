@@ -2,7 +2,14 @@
   "mcpServers": {
     "shipbox-admin": {
       "type": "sse",
-      "url": "https://shipbox-admin-mcp.captainapp.workers.dev/mcp"
+      "url": "https://shipbox-admin-mcp.captainapp.workers.dev/mcp",
+      "headers": {
+        "Authorization": "Bearer ${SHIPBOX_ADMIN_TOKEN}"
+      }
+    },
+    "cloudflare-mcp": {
+      "type": "sse",
+      "url": "https://cloudflare-mcp.captainapp.workers.dev/mcp"
     }
   }
 }
