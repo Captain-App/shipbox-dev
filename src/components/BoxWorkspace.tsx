@@ -311,24 +311,24 @@ export function BoxWorkspace({
 
   const sessionId = sandbox?.sessionId || sandbox?.id || urlSessionId;
 
-  // Always fetch fresh session data to get a fresh realtimeToken
-  // The realtimeToken expires after 2h, so we need to refetch
+  // Fetch sandbox if not provided OR if we need a fresh realtimeToken
+  // Only use urlSessionId in dependencies to avoid infinite loops
   useEffect(() => {
-    const fetchId = sessionId || urlSessionId;
-    if (fetchId) {
-      console.log('[BoxWorkspace] Fetching fresh session data for:', fetchId);
-      api
-        .getSession(fetchId)
-        .then((data) => {
-          console.log('[BoxWorkspace] Got fresh session data, hasRealtimeToken:', !!data.realtimeToken);
-          setSandbox(data);
-        })
-        .catch((err) => {
-          console.error('[BoxWorkspace] Failed to fetch session:', err);
-          navigate("/");
-        });
-    }
-  }, [sessionId, urlSessionId, navigate]);
+    if (!urlSessionId) return;
+
+    // Always fetch fresh session data to ensure we have a valid realtimeToken
+    console.log('[BoxWorkspace] Fetching session data for:', urlSessionId);
+    api
+      .getSession(urlSessionId)
+      .then((data) => {
+        console.log('[BoxWorkspace] Got session data, hasRealtimeToken:', !!data.realtimeToken);
+        setSandbox(data);
+      })
+      .catch((err) => {
+        console.error('[BoxWorkspace] Failed to fetch session:', err);
+        navigate("/");
+      });
+  }, [urlSessionId, navigate]);
 
   const deployedUrl = `https://engine.shipbox.dev/site/${sessionId}/`;
   const iframeUrl = deployedUrl;
